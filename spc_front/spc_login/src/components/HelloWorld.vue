@@ -1,152 +1,87 @@
 <template>
-  <v-container>
-    <v-row class="text-center">
-      <v-col cols="12">
+  <v-container class="fill-height" fluid>
+    <v-row>
+      <!-- Coluna Esquerda (Formulário de Login) -->
+      <v-col cols="12" md="6">
+        <v-card>
+          <v-card-title>
+            <span class="headline">Login</span>
+          </v-card-title>
+          <v-card-text>
+            <v-form ref="form" v-model="valid" lazy-validation>
+              <v-text-field
+                v-model="email"
+                label="E-mail"
+                :rules="[rules.required, rules.email]"
+                required
+              ></v-text-field>
+              <v-text-field
+                v-model="password"
+                label="Senha"
+                :type="showPassword ? 'text' : 'password'"
+                :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                @click:append="showPassword = !showPassword"
+                :rules="[rules.required]"
+                required
+              ></v-text-field>
+              <v-btn color="primary" @click="submit">Login</v-btn>
+            </v-form>
+          
+      <!-- Link para página de cadastro -->
+      <div class="mt-4">
+              <span>Não tem uma conta?</span>
+              <router-link to="/register">Cadastre-se</router-link>
+            </div>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <!-- Coluna Direita (Imagem) -->
+      <v-col cols="12" md="6">
         <v-img
-          :src="logo"
-          class="my-3"
+          src="/little_pig.jpg"
+          alt="Little Pig"
+          class="right-image"
           contain
-          height="200"
-        />
-      </v-col>
-
-      <v-col class="mb-4">
-        <h1 class="display-2 font-weight-bold mb-3">
-          Welcome to the Vuetify 3 Beta
-        </h1>
-
-          <h4>Vite Preview</h4>
-
-        <p class="subheading font-weight-regular">
-          For help and collaboration with other Vuetify developers,
-          <br>please join our online
-          <a
-            href="https://community.vuetifyjs.com"
-            target="_blank"
-          >Discord Community</a>
-        </p>
-      </v-col>
-
-      <v-col
-        class="mb-5"
-        cols="12"
-      >
-        <h2 class="headline font-weight-bold mb-5">
-          What's next?
-        </h2>
-
-        <v-row justify="center">
-          <a
-            v-for="(next, i) in whatsNext"
-            :key="i"
-            :href="next.href"
-            class="subheading mx-3"
-            target="_blank"
-          >
-            {{ next.text }}
-          </a>
-        </v-row>
-      </v-col>
-
-      <v-col
-        class="mb-5"
-        cols="12"
-      >
-        <h2 class="headline font-weight-bold mb-5">
-          Important Links
-        </h2>
-
-        <v-row justify="center">
-          <a
-            v-for="(link, i) in importantLinks"
-            :key="i"
-            :href="link.href"
-            class="subheading mx-3"
-            target="_blank"
-          >
-            {{ link.text }}
-          </a>
-        </v-row>
-      </v-col>
-
-      <v-col
-        class="mb-5"
-        cols="12"
-      >
-        <h2 class="headline font-weight-bold mb-5">
-          Ecosystem
-        </h2>
-
-        <v-row justify="center">
-          <a
-            v-for="(eco, i) in ecosystem"
-            :key="i"
-            :href="eco.href"
-            class="subheading mx-3"
-            target="_blank"
-          >
-            {{ eco.text }}
-          </a>
-        </v-row>
+        ></v-img>
       </v-col>
     </v-row>
   </v-container>
 </template>
 
 <script>
-import logo from '../assets/logo.svg'
-
 export default {
-  name: 'HelloWorld',
-
-  data: () => ({
-    ecosystem: [
-      {
-        text: 'vuetify-loader',
-        href: 'https://github.com/vuetifyjs/vuetify-loader/tree/next',
+  data() {
+    return {
+      email: '',
+      password: '',
+      showPassword: false,
+      valid: false,
+      rules: {
+        required: (value) => !!value || 'Campo obrigatório.',
+        email: (value) => /.+@.+\..+/.test(value) || 'E-mail inválido.',
       },
-      {
-        text: 'github',
-        href: 'https://github.com/vuetifyjs/vuetify/tree/next',
-      },
-      {
-        text: 'awesome-vuetify',
-        href: 'https://github.com/vuetifyjs/awesome-vuetify',
-      },
-    ],
-    importantLinks: [
-      {
-        text: 'Chat',
-        href: 'https://community.vuetifyjs.com',
-      },
-      {
-        text: 'Made with Vuetify',
-        href: 'https://madewithvuejs.com/vuetify',
-      },
-      {
-        text: 'Twitter',
-        href: 'https://twitter.com/vuetifyjs',
-      },
-      {
-        text: 'Articles',
-        href: 'https://medium.com/vuetify',
-      },
-    ],
-    logo,
-    whatsNext: [
-      {
-        text: 'Explore components',
-        href: 'https://vuetifyjs.com',
-      },
-      {
-        text: 'Roadmap',
-        href: 'https://vuetifyjs.com/introduction/roadmap/',
-      },
-      {
-        text: 'Frequently Asked Questions',
-        href: 'https://vuetifyjs.com/getting-started/frequently-asked-questions',
-      },
-    ],
-  }),
-}
+    };
+  },
+  methods: {
+    submit() {
+      if (this.$refs.form.validate()) {
+        // Lógica de autenticação aqui
+        console.log('Autenticando', this.email, this.password);
+      }
+    },
+  },
+};
 </script>
+
+<style scoped>
+.fill-height {
+  height: 100vh;
+}
+
+.right-image {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+</style>
