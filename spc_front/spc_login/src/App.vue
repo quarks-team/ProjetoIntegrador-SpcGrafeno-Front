@@ -7,13 +7,15 @@
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import LoginPage from './components/LoginPage.vue'
+import RegisterPage from './components/RegisterPage.vue';
 
 export default {
   name: 'App',
 
   components: {
-    HelloWorld,
+    LoginPage,
+    RegisterPage
   },
 
   data: () => ({
