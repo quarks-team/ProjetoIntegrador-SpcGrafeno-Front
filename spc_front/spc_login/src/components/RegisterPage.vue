@@ -36,20 +36,26 @@
                   required
                 ></v-text-field>
 
-                <!-- Aceitação dos Termos e Condições -->
-              <v-checkbox
-                v-model="termsAccepted"
-                :rules="termsRules"
-                required
-              >
-                <span>Eu aceito os </span> 
-                <router-link to="/termos" class="terms-link" target="_blank">termos e condições</router-link>
-              </v-checkbox>
+              <!-- Aceitação dos Termos e Condições -->
+              <v-row align="center" class="mb-4">
+                <v-col cols="auto">
+                  <v-checkbox
+                    v-model="termsAccepted"
+                    :rules="termsRules"
+                    required
+                  ></v-checkbox>
+                </v-col>
+                <v-col>
+                  <span>Eu aceito os 
+                    <router-link to="/termos" class="terms-link" target="_blank">
+                      termos e condições
+                    </router-link>
+                  </span>
+                </v-col>
+              </v-row>
   
                 <!-- Botão de envio -->
-                <v-btn :disabled="!valid" color="primary" @click="submit">
-                  Enviar
-                </v-btn>
+                <v-btn :disabled="!valid" color="primary" @click="submit">Enviar</v-btn>
               </v-form>
 
               <!-- Link para Login -->
