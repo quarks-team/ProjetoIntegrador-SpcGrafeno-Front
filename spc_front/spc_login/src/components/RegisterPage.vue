@@ -35,12 +35,23 @@
                   type="password"
                   required
                 ></v-text-field>
+
+                <!-- Aceitação dos Termos e Condições -->
+              <v-checkbox
+                v-model="termsAccepted"
+                :rules="termsRules"
+                required
+              >
+                <span>Eu aceito os </span> 
+                <router-link to="/termos" class="terms-link" target="_blank">termos e condições</router-link>
+              </v-checkbox>
   
                 <!-- Botão de envio -->
                 <v-btn :disabled="!valid" color="primary" @click="submit">
                   Enviar
                 </v-btn>
               </v-form>
+
               <!-- Link para Login -->
                <span>Já tem uma conta? </span>
               <router-link to="/login">Faça login</router-link>
@@ -70,6 +81,8 @@
           (v) => !!v || "Senha é obrigatória",
           (v) => v.length >= 6 || "A senha deve ter pelo menos 6 caracteres",
         ],
+        // Validação dos termos
+      termsRules: [(v) => !!v || "Você deve aceitar os termos e condições"],
       };
     },
     methods: {
@@ -94,6 +107,11 @@
   .v-card {
     background-color: rgba(255, 255, 255, 0.8);
   }
+
+  .terms-link {
+  color: #3f51b5;
+  text-decoration: underline;
+}
   </style>
   
   

@@ -76,7 +76,10 @@ export default {
 
 <style scoped>
 .fill-height {
-  height: 100vh;
+  background-image: url('@/assets/abstract.jpg');
+  background-size: cover;
+  background-position: center;
+  min-height: 100vh;
 }
 
 .right-image {
