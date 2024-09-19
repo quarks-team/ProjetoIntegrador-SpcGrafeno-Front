@@ -29,8 +29,8 @@
           
       <!-- Link para página de cadastro -->
       <div class="mt-4">
-              <span>Não tem uma conta?</span>
-              <router-link to="/register" color="primary">  Cadastre-se</router-link>
+              <span>Não tem uma conta? </span>
+              <router-link to="/register" color="primary">Cadastre-se</router-link>
             </div>
           </v-card-text>
         </v-card>
