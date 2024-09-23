@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import LoginPage from '@/components/LoginPage.vue';
 import RegisterPage from '@/components/RegisterPage.vue';
 import TermsPage from '@/components/TermsPage.vue';
+import PrivacyPolicyPage from '@/components/PrivacyPolicyPage.vue';
 
 const routes = [
   {
@@ -18,6 +19,11 @@ const routes = [
     path: '/termos',
     name: 'Terms',
     component: TermsPage
+  },
+  {
+    path: '/politica-privacidade',
+    name: 'PrivacyPolicy',
+    component: PrivacyPolicyPage,
   },
   {
     path: '/:pathMatch(.*)*',  // Para rotas desconhecidas
