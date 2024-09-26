@@ -20,7 +20,7 @@ export default defineConfig({
     },
   },
   server: {
-    port: 9001,
+    port: 9090,
   }
   /* remove the need to specify .vue files https://vitejs.dev/config/#resolve-extensions
   resolve: {

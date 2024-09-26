@@ -8,6 +8,7 @@
           </v-card-title>
           <v-card-text>
             <v-form v-model="valid" ref="form" lazy-validation>
+
               <!-- Nome -->
               <v-text-field
                 v-model="name"
@@ -41,13 +42,14 @@
                 required
               ></v-text-field>
 
-              <!-- Aceitação dos Termos e Condições -->
-              <v-row align="center" class="mb-4">
+             <!-- Aceitação dos Termos e Condições -->
+             <v-row align="center" class="mb-4">
                 <v-col cols="auto">
                   <v-checkbox
                     v-model="termsAccepted"
                     :rules="termsRules"
                     required
+                    @change="handleConsentChange"
                   ></v-checkbox>
                 </v-col>
                 <v-col>
@@ -63,31 +65,72 @@
                 </v-col>
               </v-row>
 
-              <!-- Solicitação de consentimento para uso de dados pessoais -->
-              <v-row align="center" class="mb-4">
-                <v-col cols="auto">
-                  <v-checkbox
-                    v-model="dataConsent"
-                    :rules="dataConsentRules"
-                    required
-                  ></v-checkbox>
-                </v-col>
-                <v-col>
-                  <span>Concordo com o uso dos meus dados pessoais para o propósito descrito.</span>
-                </v-col>
-              </v-row>
-
-              <!-- Botão de envio -->
-              <v-btn :disabled="!valid || !termsAccepted || !dataConsent" color="primary" @click="submit">
+              <!-- Botão de envio do formulário -->
+              <v-btn color="primary" :disabled="!valid" @click="submit">
                 Enviar
               </v-btn>
             </v-form>
-            <!-- Link para Login -->
-            <router-link to="/login">Já tem uma conta? Faça login</router-link>
+
+            <!-- Link para login -->
+             <span>Já tem uma conta? </span>
+            <router-link to="/login">Faça login</router-link>
           </v-card-text>
         </v-card>
       </v-col>
     </v-row>
+
+    <!-- Pop-up de consentimento -->
+    <v-dialog v-model="showConsentPopup" max-width="600px">
+      <v-card>
+        <v-card-title>
+          <span class="headline">Gerenciamento de Consentimento</span>
+        </v-card-title>
+
+        <v-card-text>
+          <p>
+            De acordo com a Lei Geral de Proteção de Dados (LGPD), você tem o
+            direito de revogar ou alterar seu consentimento sobre o uso de seus
+            dados pessoais.
+          </p>
+
+          <!-- Alternativas de consentimento -->
+          <v-radio-group v-model="consentStatus">
+            <v-radio
+              label="Consentimento Total (Acesso Completo)"
+              value="total"
+            ></v-radio>
+            <v-radio
+              label="Consentimento Parcial (Acesso limitado a algumas funcionalidades)"
+              value="partial"
+            ></v-radio>
+            <v-radio
+              label="Revogar Consentimento (Todos os dados serão removidos)"
+              value="none"
+            ></v-radio>
+          </v-radio-group>
+
+          <!-- Aviso de revogação completa -->
+          <v-alert v-if="consentStatus === 'none'" type="warning" outlined>
+            Ao revogar completamente o consentimento, seus dados serão excluídos
+            da nossa base de dados e você perderá acesso à plataforma.
+          </v-alert>
+
+          <!-- Aviso de revogação parcial -->
+          <v-alert v-if="consentStatus === 'partial'" type="info" outlined>
+            Ao escolher a revogação parcial, você poderá perder o acesso a
+            algumas funcionalidades da plataforma.
+          </v-alert>
+        </v-card-text>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn text color="blue darken-1" @click="closePopup">
+            Cancelar
+          </v-btn>
+          <v-btn color="primary" @click="saveConsent">Salvar</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -102,11 +145,10 @@ export default {
       name: "",
       email: "",
       password: "",
-      phonenumber: "", // Novo campo de número de telefone
+      phonenumber: "",
       termsAccepted: false, // Para verificar se os termos foram aceitos
-      dataConsent: false, // Consentimento para uso de dados pessoais
-      companyId: 1, // Exemplo de um ID de empresa fixo
-      // Validações para os campos
+      showConsentPopup: false, // Controla o pop-up de consentimento
+      consentStatus: "total", // Status de consentimento: 'total', 'partial', 'none'
       nameRules: [(v) => !!v || "Nome é obrigatório"],
       emailRules: [
         (v) => !!v || "E-mail é obrigatório",
@@ -120,15 +162,12 @@ export default {
         (v) => !!v || "Número de telefone é obrigatório",
         (v) => /^\(?\d{2}\)?[\s-]?\d{4,5}-?\d{4}$/.test(v) || "Telefone deve ser válido",
       ],
-      // Validação dos termos
       termsRules: [(v) => !!v || "Você deve aceitar os termos e condições"],
-      // Validação do consentimento para uso de dados pessoais
-      dataConsentRules: [(v) => !!v || "Você deve consentir com o uso de dados pessoais"],
     };
   },
   methods: {
     async submit() {
-      if (this.$refs.form.validate() && this.termsAccepted && this.dataConsent) {
+      if (this.$refs.form.validate() && this.termsAccepted) {
         const payload = {
           username: this.name,
           email: this.email,
@@ -145,13 +184,29 @@ export default {
         }
       }
     },
+    // Exibe o pop-up de consentimento quando o checkbox de termos é marcado
+    handleConsentChange() {
+      if (this.termsAccepted) {
+        this.showConsentPopup = true;
+      }
+    },
+    saveConsent() {
+      // Lógica para salvar o status de consentimento
+      console.log("Status de consentimento salvo:", this.consentStatus);
+      this.showConsentPopup = false;
+    },
+    closePopup() {
+      // Fecha o pop-up sem salvar e desmarca o checkbox
+      this.showConsentPopup = false;
+      this.termsAccepted = false; // Desmarca o checkbox se o pop-up for cancelado
+    },
   },
 };
 </script>
 
 <style scoped>
 .v-container.background-image {
-  background-image: url('@/assets/background.jpg');
+  background-image: url('@/assets/abstract.jpg');
   background-size: cover;
   background-position: center;
   min-height: 100vh;
@@ -163,7 +218,7 @@ export default {
 
 .terms-link,
 .privacy-link {
-  color: #3f51b5; /* Personalize a cor do link */
+  color: #3f51b5;
   text-decoration: underline;
 }
 </style>
