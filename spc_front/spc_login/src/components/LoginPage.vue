@@ -50,6 +50,7 @@
 </template>
 
 <script>
+
 export default {
   data() {
     return {
@@ -66,8 +67,11 @@ export default {
   methods: {
     submit() {
       if (this.$refs.form.validate()) {
-        // Lógica de autenticação aqui
-        console.log('Autenticando', this.email, this.password);
+        /*if (this.email === 'admin@example.com' && this.password === 'password') {
+          this.$router.push('/home');
+        } else {
+          alert('Credenciais inválidas!');
+        }*/
       }
     },
   },
