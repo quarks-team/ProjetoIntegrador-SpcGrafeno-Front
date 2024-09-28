@@ -174,10 +174,12 @@ export default {
           password: this.password,
           phoneNumber: this.phonenumber,
           companyId: this.companyId,
+          consentStatus: this.consentStatus,
+          consentDate: new Date(),
         };
 
         try {
-          await axios.post('http://localhost:3000/register', payload);
+          await axios.post('http://localhost:3000/user', payload);
           alert('Usuário criado com sucesso!');
         } catch (error) {
           alert('Erro ao criar o usuário: ' + error.response.data.message);
