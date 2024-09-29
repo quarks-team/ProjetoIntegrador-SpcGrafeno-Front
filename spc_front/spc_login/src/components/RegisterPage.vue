@@ -25,6 +25,14 @@
                 required
               ></v-text-field>
 
+              <!-- CPF ou CNPJ -->
+              <v-text-field
+                v-model="document"
+                :rules="documentRules"
+                label="CPF ou CNPJ"
+                required
+              ></v-text-field>
+
               <!-- Senha -->
               <v-text-field
                 v-model="password"
@@ -131,6 +139,7 @@ export default {
       email: "",
       password: "",
       phonenumber: "",
+      document: "",
       termsAccepted: false, // Para verificar se os termos foram aceitos
       showConsentPopup: false, // Controla o pop-up de consentimento
       consentStatus: false,
@@ -147,6 +156,10 @@ export default {
         (v) => !!v || "Número de telefone é obrigatório",
         (v) => /^\(?\d{2}\)?[\s-]?\d{4,5}-?\d{4}$/.test(v) || "Telefone deve ser válido",
       ],
+      documentRules: [
+        (v) => !!v || "CPF ou CNPJ é obrigatório",
+        (v) => this.validateDocument(v) || "CPF ou CNPJ deve ser válido",
+      ],
       termsRules: [(v) => !!v || "Você deve aceitar os termos e condições"],
     };
   },
@@ -158,6 +171,7 @@ export default {
           email: this.email,
           password: this.password,
           phoneNumber: this.phonenumber,
+          cnpj: this.document,
           companyId: this.companyId,
           consentStatus: this.consentStatus,
           consentDate: new Date(),
@@ -166,11 +180,16 @@ export default {
         try {
           await axios.post('http://localhost:3000/user', payload);
           alert('Usuário criado com sucesso!');
-          this.$router.push({name: 'LoginPage'});
+          this.$router.push({name: 'Login'});
         } catch (error) {
           alert('Erro ao criar o usuário: ' + error.response.data.message);
         }
       }
+    },
+    validateDocument(document) {
+      const cpfRegex = /^\d{3}\.\d{3}\.\d{3}-\d{2}$/; // Formato de CPF
+      const cnpjRegex = /^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/; // Formato de CNPJ
+      return cpfRegex.test(document) || cnpjRegex.test(document);
     },
     // Exibe o pop-up de consentimento quando o checkbox de termos é marcado
     handleConsentChange() {

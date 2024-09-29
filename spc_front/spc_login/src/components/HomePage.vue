@@ -1,209 +1,192 @@
 <template>
-    <v-app>
-      <v-navigation-drawer app v-model="drawer" permanent>
-        <v-list dense>
-          <v-list-item link @click="navigateTo('contratos')">
-            <v-list-item-action>
-              <v-icon>mdi-file-document</v-icon>
-            </v-list-item-action>
-            <v-list-item-content>
-              <v-list-item-title>Contratos</v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-  
-          <v-list-item link @click="navigateTo('configuracoes')">
-            <v-list-item-action>
-              <v-icon>mdi-cog</v-icon>
-            </v-list-item-action>
-            <v-list-item-content>
-              <v-list-item-title>Configurações</v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-        </v-list>
-      </v-navigation-drawer>
-  
-      <!-- Barra de Título -->
-      <v-app-bar>
-        <!-- Botão de voltar para Home -->
-        <v-btn icon @click="goHome">
-          <v-icon>mdi-home</v-icon>
-        </v-btn>
-  
-        <!-- Logotipo centralizado -->
+  <v-app>
+    <v-navigation-drawer app v-model="drawer" permanent class="drawer-background">
+      <v-list>
+        <v-list-item>
+          <v-btn icon @click="goHome">
+            <v-icon>mdi-home</v-icon>
+          </v-btn>
+          <v-list-item-content>
+            <v-list-item-title>Bem vindo &lt;empresa&gt;</v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
+        <v-divider></v-divider>
+
+        <v-list-item link @click="navigateTo('contratos')" class="drawer-text">
+          <v-list-item-action>
+            <v-icon color="white">mdi-file-document</v-icon>
+          </v-list-item-action>
+          <v-list-item-content>
+            <v-list-item-title>CONTRATOS</v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
+
+        <v-list-item link @click="navigateTo('configuracoes')" class="drawer-text">
+          <v-list-item-action>
+            <v-icon color="white">mdi-cog</v-icon>
+          </v-list-item-action>
+          <v-list-item-content>
+            <v-list-item-title>CONFIGURAÇÕES</v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
+
         <v-spacer></v-spacer>
-        <v-img
-          src="@/assets/logo_spc.jpg"
-          alt="Logo"
-          max-width="100"
-        ></v-img>
-        <v-spacer></v-spacer>
-  
-        <!-- Campo de Pesquisa -->
-        <v-text-field
-          v-model="search"
-          append-icon="mdi-magnify"
-          label="Pesquisar"
-          single-line
-          hide-details
-        ></v-text-field>
-      </v-app-bar>
-  
-      <!-- Conteúdo da Home -->
-      <v-main>
-        <v-container fluid class="home-page">
-          <v-row align="center" justify="center">
-            <v-col cols="12" md="8" class="text-center">
-              <h1 class="white--text">Bem-vindo ao SPC Score</h1>
-            </v-col>
-          </v-row>
-  
-          <!-- Seção de Informações -->
-          <v-row justify="center">
-            <v-col cols="12" md="8">
-              <v-card class="px-4 py-4">
-                <v-card-title class="headline">
-                  Histórico de Contratos
-                </v-card-title>
-                <v-card-text>
-                  <!-- Gráfico de Barras -->
-                  <canvas id="barChart" height="200"></canvas>
-  
-                  <!-- Gráfico de Velocímetro -->
-                  <h3>Seu Score:</h3>
-                  <canvas id="gaugeChart" height="200"></canvas>
-                </v-card-text>
-              </v-card>
-            </v-col>
-          </v-row>
-        </v-container>
-      </v-main>
-    </v-app>
-  </template>
-  
-  <script>
-  import { Gauge } from "chartjs-gauge";
-  import { Chart } from "chart.js/auto";
-  
-  export default {
-    data() {
-      return {
-        search: "",
-        drawer: false, // Controle do menu lateral
-        contractsPerMonth: [12, 19, 3, 5, 2, 3, 7, 12, 6, 9, 15, 8], // Exemplo de contratos abertos por mês
-      };
-    },
-    mounted() {
-      this.renderGauge();
-      this.renderBarChart();
-    },
-    methods: {
-      goHome() {
-        // Lógica para navegar para a Home
-        this.$router.push("/");
-      },
-      renderGauge() {
-        // Inicializando o gráfico de velocímetro com o Chart.js e Chartjs-Gauge
-        const ctx = document.getElementById("gaugeChart").getContext("2d");
-        new Gauge(ctx, {
-          type: "gauge",
-          data: {
-            datasets: [
-              {
-                value: 65, // Score atual do usuário (exemplo)
-                data: [0, 20, 40, 60, 80, 100],
-                backgroundColor: ["#ff6e6e", "#ffb26b", "#ffe66d", "#b8e986", "#62d0ff"],
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            layout: {
-              padding: {
-                bottom: 20,
-              },
+        
+        <v-list-item link @click="logout" class="drawer-text">
+          <v-list-item-avatar>
+            <v-icon color="white">mdi-power</v-icon>
+          </v-list-item-avatar>
+          <v-list-item-content>
+            <v-list-item-title>Log Out</v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
+      </v-list>
+    </v-navigation-drawer>
+
+    <v-app-bar app color="light-green lighten-4" flat>
+      <v-toolbar-title>
+        <v-icon>mdi-clock</v-icon>
+        SPC Grafeno
+      </v-toolbar-title>
+      <v-spacer></v-spacer>
+      <v-icon>mdi-magnify</v-icon>
+    </v-app-bar>
+
+    <v-main>
+      <v-container fluid>
+        <v-row>
+          <v-col cols="12" md="6">
+            <v-card class="mx-auto" color="light-green lighten-5" flat>
+              <v-card-title class="text-center">
+                Seu Score está {{ scoreText }}
+              </v-card-title>
+              <v-card-subtitle class="text-center display-3">
+                <span>{{ score }}</span> de 10000
+              </v-card-subtitle>
+              <v-progress-circular
+                :size="150"
+                :width="15"
+                color="green"
+                :value="scorePercentage"
+              >
+              </v-progress-circular>
+            </v-card>
+          </v-col>
+          <v-col cols="12" md="6">
+            <v-card flat>
+              <v-card-title class="text-center">
+                HISTÓRICO DE CONTRATOS
+              </v-card-title>
+              <v-card-text>
+                <canvas id="contractsChart"></canvas>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-container>
+    </v-main>
+  </v-app>
+</template>
+
+<script>
+import { ref, onMounted } from "vue";
+import Chart from "chart.js/auto";
+import axios from "axios";
+
+export default {
+  setup() {
+    const score = ref(0);
+    const scoreText = ref("");
+    const drawer = ref(true);
+    const cnpj = ref("12345678000123"); // Supondo que o CNPJ do usuário logado é recuperado aqui
+
+    // Função para buscar o score do back-end
+    const fetchEndorserScore = async () => {
+      try {
+        const response = await axios.get(`/api/endorser-score?cnpj=${cnpj.value}`);
+        score.value = response.data.score;
+        updateScoreText();
+      } catch (error) {
+        console.error("Erro ao buscar o score:", error);
+      }
+    };
+
+    // Atualiza o texto com base no valor do score
+    const updateScoreText = () => {
+      if (score.value >= 8000) {
+        scoreText.value = "alto";
+      } else if (score.value >= 5000) {
+        scoreText.value = "médio";
+      } else {
+        scoreText.value = "baixo";
+      }
+    };
+
+    onMounted(() => {
+      fetchEndorserScore();
+
+      const ctx = document.getElementById("contractsChart").getContext("2d");
+      new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: ["Jan 2014", "Fev 2014", "Mar 2014", "Abr 2014", "Mai 2014", "Jun 2014"],
+          datasets: [
+            {
+              label: "Aberto",
+              data: [8, 5, 9, 6, 7, 10],
+              backgroundColor: "blue",
             },
-            needle: {
-              radiusPercentage: 2,
-              widthPercentage: 3.2,
-              lengthPercentage: 80,
-              color: "#000000",
+            {
+              label: "Fechado",
+              data: [12, 8, 15, 10, 16, 6],
+              backgroundColor: "green",
             },
-            valueLabel: {
-              display: true,
-              formatter: (value) => `${value}%`, // Exibe o valor do score em porcentagem
+          ],
+        },
+        options: {
+          responsive: true,
+          scales: {
+            x: {
+              beginAtZero: true,
             },
-          },
-        });
-      },
-      renderBarChart() {
-        // Inicializando o gráfico de barras
-        const ctx = document.getElementById("barChart").getContext("2d");
-        new Chart(ctx, {
-          type: "bar",
-          data: {
-            labels: [
-              'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
-              'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'
-            ],
-            datasets: [
-              {
-                label: 'Contratos Abertos',
-                data: this.contractsPerMonth, // Dados de contratos por mês
-                backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                borderColor: 'rgba(54, 162, 235, 1)',
-                borderWidth: 1,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            scales: {
-              y: {
-                beginAtZero: true,
-                ticks: {
-                  stepSize: 1, // Define um incremento mínimo no eixo Y
-                },
-              },
+            y: {
+              beginAtZero: true,
             },
           },
-        });
+        },
+      });
+    });
+
+    return {
+      drawer,
+      score,
+      scoreText,
+      scorePercentage: ref((score.value / 10000) * 100), // Converte o score (0-10000) para uma porcentagem (0-100)
+      goHome: () => {
+        // Navegação para home
       },
-      navigateTo(page) {
-        this.$router.push(`/${page}`);
+      navigateTo: (page) => {
+        // Navegação para outras páginas
       },
-    },
-  };
-  </script>
-  
-  <style scoped>
-  .v-app-bar {
-    background-color: rgba(222, 249, 196, 1);
-  }
-  
-  .home-page {
-    background-image: url("@/assets/abstract.jpg");
-    background-size: cover;
-    background-position: center;
-    height: 100vh;
-  }
-  
-  .fill-height {
-    height: 100%;
-  }
-  
-  .v-card {
-    background-color: white;
-    color: black;
-  }
-  
-  .v-card-title {
-    font-weight: bold;
-  }
-  
-  .v-card-text {
-    font-size: 16px;
-    line-height: 1.6;
-  }
-  </style>
-  
-  
+      logout: () => {
+        // Função de logout
+      },
+    };
+  },
+};
+</script>
+
+<style scoped>
+.v-navigation-drawer {
+  width: 200px;
+  background-color: #1679AB;
+}
+
+.v-card {
+  padding: 20px;
+}
+
+.drawer-text {
+  color: white !important;
+}
+</style>

@@ -81,7 +81,7 @@ export default {
         try {
           const response = await axios.post('http://localhost:3000/user/login', payload);
 
-          this.$router.push({ name: 'HomePage' });
+          this.$router.push({ name: 'Home' });
         } catch (error) {
           console.error("Erro ao fazer login:", error);
           alert('Erro ao fazer login: ' + (error.response?.data?.message || 'Erro desconhecido'));
