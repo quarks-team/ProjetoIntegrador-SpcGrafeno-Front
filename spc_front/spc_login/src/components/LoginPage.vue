@@ -81,6 +81,9 @@ export default {
         try {
           const response = await axios.post('http://localhost:3000/user/login', payload);
 
+          const {cnpj} = response.data;
+          localStorage.setItem('cnpj', cnpj);
+
           this.$router.push({ name: 'Home' });
         } catch (error) {
           console.error("Erro ao fazer login:", error);

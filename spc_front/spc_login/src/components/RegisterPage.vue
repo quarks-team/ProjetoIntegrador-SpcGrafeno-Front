@@ -187,9 +187,9 @@ export default {
       }
     },
     validateDocument(document) {
-      const cpfRegex = /^\d{3}\.\d{3}\.\d{3}-\d{2}$/; // Formato de CPF
-      const cnpjRegex = /^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/; // Formato de CNPJ
-      return cpfRegex.test(document) || cnpjRegex.test(document);
+      const sanitizedDocument = document.replace(/\D/g, '');
+      const isValidLength = sanitizedDocument.length === 11 || sanitizedDocument.length === 14;
+      return isValidLength;
     },
     // Exibe o pop-up de consentimento quando o checkbox de termos é marcado
     handleConsentChange() {

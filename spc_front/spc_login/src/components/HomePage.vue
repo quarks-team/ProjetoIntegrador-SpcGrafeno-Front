@@ -45,15 +45,18 @@
 
     <v-app-bar app color="light-green lighten-4" flat>
       <v-toolbar-title>
-        <v-icon>mdi-clock</v-icon>
-        SPC Grafeno
+        <v-img
+        src="../assets/logo_spc.jpg"
+        alt="logo"
+        max-width="100"
+        />
       </v-toolbar-title>
       <v-spacer></v-spacer>
       <v-icon>mdi-magnify</v-icon>
     </v-app-bar>
 
     <v-main>
-      <v-container fluid>
+      <v-container fluid class="background-image">
         <v-row>
           <v-col cols="12" md="6">
             <v-card class="mx-auto" color="light-green lighten-5" flat>
@@ -97,15 +100,17 @@ export default {
   setup() {
     const score = ref(0);
     const scoreText = ref("");
+    const scorePercentage = ref(0);
     const drawer = ref(true);
-    const cnpj = ref("12345678000123"); // Supondo que o CNPJ do usuário logado é recuperado aqui
+    const cnpj = ref(localStorage.getItem('cnpj'));
 
     // Função para buscar o score do back-end
     const fetchEndorserScore = async () => {
       try {
-        const response = await axios.get(`/api/endorser-score?cnpj=${cnpj.value}`);
-        score.value = response.data.score;
+        const response = await axios.get(`http://localhost:3000/score/${cnpj.value}`);
+        score.value = response.data.score[0]["score"];
         updateScoreText();
+        scorePercentage.value = (score.value / 10000) * 100;
       } catch (error) {
         console.error("Erro ao buscar o score:", error);
       }
@@ -161,7 +166,8 @@ export default {
       drawer,
       score,
       scoreText,
-      scorePercentage: ref((score.value / 10000) * 100), // Converte o score (0-10000) para uma porcentagem (0-100)
+      scorePercentage,
+
       goHome: () => {
         // Navegação para home
       },
@@ -188,5 +194,16 @@ export default {
 
 .drawer-text {
   color: white !important;
+}
+
+.background-image{
+  background-image: url('@/assets/abstract.jpg');
+  background-size: cover;
+  background-position: center;
+  min-height: 100vh;
+}
+
+.search-bar {
+  max-width: 300px;
 }
 </style>
