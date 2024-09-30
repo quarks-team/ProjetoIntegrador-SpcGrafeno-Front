@@ -12,7 +12,7 @@
               <v-text-field
                 v-model="email"
                 label="E-mail"
-                :rules="[rules.required, rules.email]"
+                :rules="[emailRules]"
                 required
               ></v-text-field>
               <v-text-field
@@ -21,10 +21,10 @@
                 :type="showPassword ? 'text' : 'password'"
                 :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
                 @click:append="showPassword = !showPassword"
-                :rules="[rules.required]"
+                :rules="[passwordRules]"
                 required
               ></v-text-field>
-              <v-btn color="primary" @click="submit">Login</v-btn>
+              <v-btn color="primary" @click="login">Login</v-btn>
             </v-form>
           
       <!-- Link para página de cadastro -->
@@ -50,24 +50,45 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
+  name: "LoginPage",
   data() {
     return {
-      email: '',
-      password: '',
-      showPassword: false,
       valid: false,
-      rules: {
-        required: (value) => !!value || 'Campo obrigatório.',
-        email: (value) => /.+@.+\..+/.test(value) || 'E-mail inválido.',
-      },
+      email: "",
+      password: "",
+      showPassword: false,
+      emailRules: [
+        (v) => !!v || "E-mail é obrigatório",
+        (v) => /.+@.+\..+/.test(v) || "E-mail deve ser válido",
+      ],
+      passwordRules: [
+        (v) => !!v || "Senha é obrigatória",
+        (v) => v.length >= 6 || "A senha deve ter pelo menos 6 caracteres",
+      ],
     };
   },
   methods: {
-    submit() {
+    async login() {
       if (this.$refs.form.validate()) {
-        // Lógica de autenticação aqui
-        console.log('Autenticando', this.email, this.password);
+        const payload = {
+          email: this.email,
+          password: this.password,
+        };
+
+        try {
+          const response = await axios.post('http://localhost:3000/user/login', payload);
+
+          const {cnpj} = response.data;
+          localStorage.setItem('cnpj', cnpj);
+
+          this.$router.push({ name: 'Home' });
+        } catch (error) {
+          console.error("Erro ao fazer login:", error);
+          alert('Erro ao fazer login: ' + (error.response?.data?.message || 'Erro desconhecido'));
+        }
       }
     },
   },

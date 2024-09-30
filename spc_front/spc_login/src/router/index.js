@@ -3,6 +3,7 @@ import LoginPage from '@/components/LoginPage.vue';
 import RegisterPage from '@/components/RegisterPage.vue';
 import TermsPage from '@/components/TermsPage.vue';
 import PrivacyPolicyPage from '@/components/PrivacyPolicyPage.vue';
+import HomePage from '@/components/HomePage.vue';
 
 const routes = [
   {
@@ -24,6 +25,12 @@ const routes = [
     path: '/politica-privacidade',
     name: 'PrivacyPolicy',
     component: PrivacyPolicyPage,
+  },
+  {
+    path: '/home',
+    name: 'Home',
+    component: HomePage,
+    /*meta: { requiresAuth: true },*/
   },
   {
     path: '/:pathMatch(.*)*',  // Para rotas desconhecidas

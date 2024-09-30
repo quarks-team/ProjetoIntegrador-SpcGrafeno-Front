@@ -25,6 +25,14 @@
                 required
               ></v-text-field>
 
+              <!-- CPF ou CNPJ -->
+              <v-text-field
+                v-model="document"
+                :rules="documentRules"
+                label="CPF ou CNPJ"
+                required
+              ></v-text-field>
+
               <!-- Senha -->
               <v-text-field
                 v-model="password"
@@ -93,32 +101,17 @@
             dados pessoais.
           </p>
 
-          <!-- Alternativas de consentimento -->
-          <v-radio-group v-model="consentStatus">
-            <v-radio
-              label="Consentimento Total (Acesso Completo)"
-              value="total"
-            ></v-radio>
-            <v-radio
-              label="Consentimento Parcial (Acesso limitado a algumas funcionalidades)"
-              value="partial"
-            ></v-radio>
-            <v-radio
-              label="Revogar Consentimento (Todos os dados serão removidos)"
-              value="none"
-            ></v-radio>
-          </v-radio-group>
+          <!-- Checkbox para consentimento -->
+      <v-checkbox
+        v-model="consentStatus"
+        label="Aceito o uso dos meus dados pessoais de acordo com os Termos e Condições"
+        @change="handleConsentChange"
+      ></v-checkbox>
 
           <!-- Aviso de revogação completa -->
           <v-alert v-if="consentStatus === 'none'" type="warning" outlined>
-            Ao revogar completamente o consentimento, seus dados serão excluídos
-            da nossa base de dados e você perderá acesso à plataforma.
-          </v-alert>
-
-          <!-- Aviso de revogação parcial -->
-          <v-alert v-if="consentStatus === 'partial'" type="info" outlined>
-            Ao escolher a revogação parcial, você poderá perder o acesso a
-            algumas funcionalidades da plataforma.
+            Caso não aceite os Termos e Condições e a Política de Privacidade, seus dados não serão salvos
+            em nossa base de dados e você não perderá acessar a plataforma.
           </v-alert>
         </v-card-text>
 
@@ -146,9 +139,10 @@ export default {
       email: "",
       password: "",
       phonenumber: "",
+      document: "",
       termsAccepted: false, // Para verificar se os termos foram aceitos
       showConsentPopup: false, // Controla o pop-up de consentimento
-      consentStatus: "total", // Status de consentimento: 'total', 'partial', 'none'
+      consentStatus: false,
       nameRules: [(v) => !!v || "Nome é obrigatório"],
       emailRules: [
         (v) => !!v || "E-mail é obrigatório",
@@ -162,6 +156,10 @@ export default {
         (v) => !!v || "Número de telefone é obrigatório",
         (v) => /^\(?\d{2}\)?[\s-]?\d{4,5}-?\d{4}$/.test(v) || "Telefone deve ser válido",
       ],
+      documentRules: [
+        (v) => !!v || "CPF ou CNPJ é obrigatório",
+        (v) => this.validateDocument(v) || "CPF ou CNPJ deve ser válido",
+      ],
       termsRules: [(v) => !!v || "Você deve aceitar os termos e condições"],
     };
   },
@@ -173,16 +171,25 @@ export default {
           email: this.email,
           password: this.password,
           phoneNumber: this.phonenumber,
+          cnpj: this.document,
           companyId: this.companyId,
+          consentStatus: this.consentStatus,
+          consentDate: new Date(),
         };
 
         try {
-          await axios.post('http://localhost:3000/register', payload);
+          await axios.post('http://localhost:3000/user', payload);
           alert('Usuário criado com sucesso!');
+          this.$router.push({name: 'Login'});
         } catch (error) {
           alert('Erro ao criar o usuário: ' + error.response.data.message);
         }
       }
+    },
+    validateDocument(document) {
+      const sanitizedDocument = document.replace(/\D/g, '');
+      const isValidLength = sanitizedDocument.length === 11 || sanitizedDocument.length === 14;
+      return isValidLength;
     },
     // Exibe o pop-up de consentimento quando o checkbox de termos é marcado
     handleConsentChange() {
