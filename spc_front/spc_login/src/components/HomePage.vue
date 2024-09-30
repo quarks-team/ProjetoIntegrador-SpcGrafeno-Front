@@ -46,7 +46,7 @@
     <v-app-bar app color="light-green lighten-4" flat>
       <v-toolbar-title>
         <v-img
-        src="../assets/logo_spc.jpg"
+        src="@/assets/logo.png"
         alt="logo"
         max-width="100"
         />
@@ -57,8 +57,8 @@
 
     <v-main>
       <v-container fluid class="background-image">
-        <v-row>
-          <v-col cols="12" md="6">
+        <v-row justify="center" align="center" class="min-height">
+          <v-col cols="12" md="6" class="text-center">
             <v-card class="mx-auto" color="light-green lighten-5" flat>
               <v-card-title class="text-center">
                 Seu Score está {{ scoreText }}
@@ -66,22 +66,57 @@
               <v-card-subtitle class="text-center display-3">
                 <span>{{ score }}</span> de 10000
               </v-card-subtitle>
+              <v-divider></v-divider>
+              
               <v-progress-circular
-                :size="150"
-                :width="15"
-                color="green"
-                :value="scorePercentage"
-              >
-              </v-progress-circular>
+              :value="scorePercentage"
+              :size="150"
+              color="green"
+              class="mx-auto"
+            >
+              {{ scorePercentage.toFixed(0) }}%
+            </v-progress-circular>
             </v-card>
           </v-col>
-          <v-col cols="12" md="6">
+
+          <v-col cols="12" md="6" class="text-center">
             <v-card flat>
               <v-card-title class="text-center">
                 HISTÓRICO DE CONTRATOS
               </v-card-title>
-              <v-card-text>
-                <canvas id="contractsChart"></canvas>
+              <v-card-text v-if="endorserScore">
+                <!-- Barra de Progresso Linear para Aberto -->
+              <v-progress-linear
+                :value="getProgressValue(endorserScore?.active)"
+                :height="20"
+                color="blue"
+                class="mb-2"
+              >
+                Aberto {{ endorserScore?.active !== null ? endorserScore.active : 0 }}
+              </v-progress-linear>
+
+              <!-- Barra de Progresso Linear para Fechado -->
+              <v-progress-linear
+                :value="getProgressValue(endorserScore?.finished)"
+                :height="20"
+                color="green"
+                class="mb-2"
+              >
+                Fechado {{ endorserScore?.finished !== null ? endorserScore.finished : 0 }}
+              </v-progress-linear>
+
+              <!-- Barra de Progresso Linear para Cancelado -->
+              <v-progress-linear
+                :value="getProgressValue(endorserScore?.canceled)"
+                :height="20"
+                color="red"
+                class="mb-2"
+              >
+                Cancelado {{ endorserScore?.canceled !== null ? endorserScore.canceled : 0 }}
+              </v-progress-linear>
+              </v-card-text>
+              <v-card-text v-else>
+                Carregando dados...
               </v-card-text>
             </v-card>
           </v-col>
@@ -93,7 +128,6 @@
 
 <script>
 import { ref, onMounted } from "vue";
-import Chart from "chart.js/auto";
 import axios from "axios";
 
 export default {
@@ -103,6 +137,7 @@ export default {
     const scorePercentage = ref(0);
     const drawer = ref(true);
     const cnpj = ref(localStorage.getItem('cnpj'));
+    const endorserScore = ref({ active: 0, finished: 0, canceled: 0 });
 
     // Função para buscar o score do back-end
     const fetchEndorserScore = async () => {
@@ -111,7 +146,9 @@ export default {
         score.value = response.data.score[0]["score"];
         updateScoreText();
         scorePercentage.value = (score.value / 10000) * 100;
-      } catch (error) {
+        endorserScore.value = response.data.score[0];
+      } 
+      catch (error) {
         console.error("Erro ao buscar o score:", error);
       }
     };
@@ -127,46 +164,22 @@ export default {
       }
     };
 
+    const getProgressValue = (value) => {
+      return (value / 100) * 100;
+    };
+
     onMounted(() => {
       fetchEndorserScore();
-
-      const ctx = document.getElementById("contractsChart").getContext("2d");
-      new Chart(ctx, {
-        type: "bar",
-        data: {
-          labels: ["Jan 2014", "Fev 2014", "Mar 2014", "Abr 2014", "Mai 2014", "Jun 2014"],
-          datasets: [
-            {
-              label: "Aberto",
-              data: [8, 5, 9, 6, 7, 10],
-              backgroundColor: "blue",
-            },
-            {
-              label: "Fechado",
-              data: [12, 8, 15, 10, 16, 6],
-              backgroundColor: "green",
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          scales: {
-            x: {
-              beginAtZero: true,
-            },
-            y: {
-              beginAtZero: true,
-            },
-          },
-        },
-      });
-    });
+});
 
     return {
       drawer,
       score,
       scoreText,
       scorePercentage,
+      cnpj,
+      endorserScore,
+      getProgressValue,
 
       goHome: () => {
         // Navegação para home
@@ -175,7 +188,10 @@ export default {
         // Navegação para outras páginas
       },
       logout: () => {
-        // Função de logout
+        localStorage.removeItem('cnpj');
+        localStorage.removeItem('token');
+
+        this.$router.push('/login');
       },
     };
   },
@@ -203,7 +219,7 @@ export default {
   min-height: 100vh;
 }
 
-.search-bar {
-  max-width: 300px;
+.min-height {
+  min-height: 100vh;
 }
 </style>
