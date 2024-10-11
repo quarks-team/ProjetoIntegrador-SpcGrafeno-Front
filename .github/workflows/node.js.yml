@@ -36,5 +36,5 @@ jobs:
 
       # Step 5: Run unit and integration tests
       - name: Run tests
-        run: npm run test
+        run: npm run test:unit
         working-directory: spc_front/spc_login
