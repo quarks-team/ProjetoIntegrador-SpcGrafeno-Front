@@ -7,7 +7,7 @@
             <v-icon>mdi-home</v-icon>
           </v-btn>
           <v-list-item-content>
-            <v-list-item-title>Bem vindo &lt;empresa&gt;</v-list-item-title>
+            <v-list-item-title>Bem vindo {{ username }}</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
         <v-divider></v-divider>
@@ -32,34 +32,33 @@
 
         <v-spacer></v-spacer>
         
-        <v-list-item link @click="logout" class="drawer-text">
-          <v-list-item-avatar>
-            <v-icon color="white">mdi-power</v-icon>
-          </v-list-item-avatar>
-          <v-list-item-content>
-            <v-list-item-title>Log Out</v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
+        <v-btn
+        @click="logout"
+        class="logout-icon"
+        color="white"
+        fab
+        icon
+      >
+      <v-icon>mdi-logout</v-icon>
+      </v-btn>
       </v-list>
     </v-navigation-drawer>
 
-    <v-app-bar app color="light-green lighten-4" flat>
+    <v-app-bar app color="green lighten-3" flat>
+      <v-toolbar-side-icon>
+        <v-icon>fas fa-tachometer-alt</v-icon>
+      </v-toolbar-side-icon>
       <v-toolbar-title>
-        <v-img
-        src="@/assets/logo.png"
-        alt="logo"
-        max-width="100"
-        />
+        SPC Score
       </v-toolbar-title>
       <v-spacer></v-spacer>
-      <v-icon>mdi-magnify</v-icon>
     </v-app-bar>
 
     <v-main>
       <v-container fluid class="background-image">
         <v-row justify="center" align="center" class="min-height">
           <v-col cols="12" md="6" class="text-center">
-            <v-card class="mx-auto" color="light-green lighten-5" flat>
+            <v-card class="mx-auto" :style="{backgroundColor: '#DEF9C4'}" flat>
               <v-card-title class="text-center">
                 Seu Score está {{ scoreText }}
               </v-card-title>
@@ -71,7 +70,7 @@
               <v-progress-circular
               :value="scorePercentage"
               :size="150"
-              color="green"
+              color="blue"
               class="mx-auto"
             >
               {{ scorePercentage.toFixed(0) }}%
@@ -129,6 +128,7 @@
 <script>
 import { ref, onMounted } from "vue";
 import axios from "axios";
+import { useRouter } from "vue-router";
 
 export default {
   setup() {
@@ -138,6 +138,8 @@ export default {
     const drawer = ref(true);
     const cnpj = ref(localStorage.getItem('cnpj'));
     const endorserScore = ref({ active: 0, finished: 0, canceled: 0 });
+    const router = useRouter();
+    const username = ref(localStorage.getItem('username'));
 
     // Função para buscar o score do back-end
     const fetchEndorserScore = async () => {
@@ -168,6 +170,13 @@ export default {
       return (value / 100) * 100;
     };
 
+    const logout = () => {
+      localStorage.removeItem('cnpj');
+      localStorage.removeItem('token');
+      localStorage.removeItem('username');
+      router.push('/login');
+    };
+
     onMounted(() => {
       fetchEndorserScore();
 });
@@ -179,6 +188,8 @@ export default {
       scorePercentage,
       cnpj,
       endorserScore,
+      username,
+      logout,
       getProgressValue,
 
       goHome: () => {
@@ -186,12 +197,6 @@ export default {
       },
       navigateTo: (page) => {
         // Navegação para outras páginas
-      },
-      logout: () => {
-        localStorage.removeItem('cnpj');
-        localStorage.removeItem('token');
-
-        this.$router.push('/login');
       },
     };
   },
@@ -221,5 +226,10 @@ export default {
 
 .min-height {
   min-height: 100vh;
+}
+.logout-icon {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
 }
 </style>
