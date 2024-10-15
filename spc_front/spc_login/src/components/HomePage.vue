@@ -21,7 +21,7 @@
           </v-list-item-content>
         </v-list-item>
 
-        <v-list-item link @click="navigateTo('configuracoes')" class="drawer-text">
+        <v-list-item link @click="navigateTo('config')" class="drawer-text">
           <v-list-item-action>
             <v-icon color="white">mdi-cog</v-icon>
           </v-list-item-action>
@@ -172,7 +172,6 @@ export default {
 
     const logout = () => {
       localStorage.removeItem('cnpj');
-      localStorage.removeItem('token');
       localStorage.removeItem('username');
       router.push('/login');
     };
@@ -192,11 +191,12 @@ export default {
       logout,
       getProgressValue,
 
-      goHome: () => {
-        // Navegação para home
-      },
       navigateTo: (page) => {
-        // Navegação para outras páginas
+        if (page === 'contratos') {
+          router.push('/contratos');
+        } else if (page === 'config') {
+          router.push('/config');
+        }
       },
     };
   },

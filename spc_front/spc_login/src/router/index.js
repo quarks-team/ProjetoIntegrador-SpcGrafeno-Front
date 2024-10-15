@@ -4,6 +4,8 @@ import RegisterPage from '@/components/RegisterPage.vue';
 import TermsPage from '@/components/TermsPage.vue';
 import PrivacyPolicyPage from '@/components/PrivacyPolicyPage.vue';
 import HomePage from '@/components/HomePage.vue';
+import path from 'path';
+import ConfigConsent from '@/components/ConfigConsent.vue';
 
 const routes = [
   {
@@ -31,6 +33,11 @@ const routes = [
     name: 'Home',
     component: HomePage,
     /*meta: { requiresAuth: true },*/
+  },
+  {
+    path: '/config',
+    name: 'ConfigConsent',
+    component: ConfigConsent,
   },
   {
     path: '/:pathMatch(.*)*',  // Para rotas desconhecidas
