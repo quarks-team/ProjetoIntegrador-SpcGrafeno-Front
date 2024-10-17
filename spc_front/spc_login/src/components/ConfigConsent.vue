@@ -7,7 +7,7 @@
             <v-icon>mdi-home</v-icon>
           </v-btn>
           <v-list-item-content>
-            <v-list-item-title>Bem vindo {{ username }}</v-list-item-title>
+            <v-list-item-title>Bem vindo {{ username || 'Usuário' }}</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
         <v-divider></v-divider>
@@ -55,9 +55,11 @@
     </v-app-bar>
 
     <main>
-    <v-container>
-      <v-card class="mx-auto" max-width="900">
-        <v-card-title>Gerenciamento de Consentimento</v-card-title>
+      <v-container fluid class="background-image">
+        <v-row justify="center" align="center" class="min-height">
+          <v-col cols="12" md="6" class="text-center">
+            <v-card class="mx-auto" :style="{backgroundColor: '#DEF9C4'}" flat>
+            <v-card-title>Gerenciamento de Consentimento</v-card-title>
   
         <!-- Feedback visual para ações do usuário -->
         <v-alert v-if="feedbackMessage" :type="feedbackType" dismissible>
@@ -95,6 +97,8 @@
           <v-btn color="primary" @click="saveChanges">Salvar Alterações</v-btn>
         </v-card-actions>
       </v-card>
+      </v-col>
+      </v-row>
   
       <!-- Informações detalhadas de impacto -->
       <v-dialog v-model="dialog" max-width="600px">
@@ -110,23 +114,24 @@
       </v-dialog>
     </v-container>
     </main>
-    </v-app>
+   </v-app>
   </template>
   
   <script>
   import { useRouter } from "vue-router";
   import axios from "axios";
+  import { ref, onMounted } from "vue";
 
   export default {
     setup() {
       const cnpj = ref(localStorage.getItem('cnpj'));
       const router = useRouter();
-      const username = ref(localStorage.getItem('username'));
+      const username = ref(localStorage.getItem('username' || 'Usuário'));
 
       const searchUser = async () => {
       try {
         const response = await axios.get(`http://localhost:3000/score/${cnpj.value}`);
-        username.value = response.value.username;
+        username.value = response.data.username;
       }
       catch (error) {
         console.error("Erro ao buscar o usuário:", error);
@@ -146,6 +151,7 @@
     };
 
       return {
+        drawer: ref(true),
         logout,
         cnpj,
         username,
@@ -195,7 +201,11 @@
       },
 
       navigateTo: (page) => {
-        this.$router.push(`/${page}`);
+        if (page === 'contratos') {
+          router.push('/contratos');
+        } else if (page === 'config') {
+          router.push('/config');
+        }
       },
     }
   };
