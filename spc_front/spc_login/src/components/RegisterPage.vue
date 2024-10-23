@@ -42,14 +42,6 @@
                 required
               ></v-text-field>
 
-              <!-- Telefone -->
-              <v-text-field
-                v-model="phonenumber"
-                :rules="phonenumberRules"
-                label="Telefone"
-                required
-              ></v-text-field>
-
              <!-- Aceitação dos Termos e Condições -->
              <v-row align="center" class="mb-4">
                 <v-col cols="auto">
@@ -170,9 +162,7 @@ export default {
           username: this.name,
           email: this.email,
           password: this.password,
-          phoneNumber: this.phonenumber,
-          cnpj: this.document,
-          companyId: this.companyId,
+          cnpj: this.document || null,
           consentStatus: this.consentStatus,
           consentDate: new Date(),
         };
@@ -220,7 +210,7 @@ export default {
 }
 
 .v-card {
-  background-color: rgba(255, 255, 255, 0.8); /* Transparência para o card */
+  background-color: rgba(255, 255, 255, 0.8);
 }
 
 .terms-link,

@@ -58,7 +58,7 @@
       <v-container fluid class="background-image">
         <v-row justify="center" align="center" class="min-height">
           <v-col cols="12" md="6" class="text-center">
-            <v-card class="mx-auto" :style="{backgroundColor: '#DEF9C4'}" flat>
+            <v-card class="mx-auto" flat>
             <v-card-title>Gerenciamento de Consentimento</v-card-title>
   
         <!-- Feedback visual para ações do usuário -->
@@ -124,25 +124,55 @@
 
   export default {
     setup() {
-      const cnpj = ref(localStorage.getItem('cnpj'));
+      const id = ref(localStorage.getItem('id'));
       const router = useRouter();
       const username = ref(localStorage.getItem('username' || 'Usuário'));
+      const policies = ref([]);
+      const dialog = ref(false);
+      const selectedPolicy = ref({});
+      const feedbackMessage = ref('');
+      const feedbackType = ref('');
 
-      const searchUser = async () => {
+      const fetchPolicies = async () => {
       try {
-        const response = await axios.get(`http://localhost:3000/score/${cnpj.value}`);
-        username.value = response.data.username;
-      }
-      catch (error) {
-        console.error("Erro ao buscar o usuário:", error);
+        const response = await axios.get(`http://localhost:3000/user_policy/${id.value}`);
+        policies.value = response.data;
+      } catch (error) {
+        console.error("Erro ao buscar políticas:", error);
       }
     };
 
     onMounted(() => {
       if (cnpj.value) {
-        searchUser();
+        fetchPolicies();
       }
     });
+
+    const updateConsent = (policy) => {
+      if (!policy.accepted) {
+        showImpact(policy);
+      }
+    };
+
+    const showImpact = (policy) => {
+      selectedPolicy.value = policy;
+      dialog.value = true;
+    };
+
+    const saveChanges = async () => {
+      try {
+        const response = await axios.post(`http://localhost:3000/consent/update`, {
+          cnpj: cnpj.value,
+          policies: policies.value
+        });
+        feedbackMessage.value = 'Consentimentos atualizados com sucesso.';
+        feedbackType.value = 'success';
+      } catch (error) {
+        feedbackMessage.value = 'Erro ao atualizar consentimentos.';
+        feedbackType.value = 'error';
+        console.error("Erro ao salvar alterações:", error);
+      }
+    };
 
       const logout = () => {
       localStorage.removeItem('cnpj');
@@ -155,51 +185,17 @@
         logout,
         cnpj,
         username,
-        dialog: false,
-        feedbackMessage: '',
-        feedbackType: '',
-        selectedPolicy: {},
-        policies: [
-          {
-            title: 'Uso de Dados para Marketing',
-            description: 'Coletamos dados para melhorar nossos anúncios.',
-            impact: 'Revogar este consentimento pode reduzir a personalização de anúncios.',
-            accepted: false,
-            isMandatory: false
-          },
-          {
-            title: 'Dados Analíticos',
-            description: 'Coletamos dados para melhorar a experiência do usuário.',
-            impact: 'Revogar este consentimento pode limitar o acesso a algumas funcionalidades de análise.',
-            accepted: true,
-            isMandatory: false
-          },
-          {
-            title: 'Termos de Uso e Política de Privacidade',
-            description: 'Necessário para o funcionamento da plataforma.',
-            impact: 'Este consentimento é obrigatório e não pode ser revogado.',
-            accepted: true,
-            isMandatory: true
-          }
-        ]
+        dialog,
+        feedbackMessage,
+        feedbackType,
+        selectedPolicy,
+        policies,
+        updateConsent,
+        saveChanges,
+        showImpact
       };
     },
     methods: {
-      updateConsent(policy) {
-        if (!policy.accepted) {
-          this.showImpact(policy);
-        }
-      },
-      showImpact(policy) {
-        this.selectedPolicy = policy;
-        this.dialog = true;
-      },
-      saveChanges() {
-        // Simular a chamada ao backend para salvar as alterações de consentimento
-        this.feedbackMessage = 'Consentimentos atualizados com sucesso.';
-        this.feedbackType = 'success';
-      },
-
       navigateTo: (page) => {
         if (page === 'contratos') {
           router.push('/contratos');

@@ -4,14 +4,26 @@ import RegisterPage from '@/components/RegisterPage.vue';
 import TermsPage from '@/components/TermsPage.vue';
 import PrivacyPolicyPage from '@/components/PrivacyPolicyPage.vue';
 import HomePage from '@/components/HomePage.vue';
-import path from 'path';
 import ConfigConsent from '@/components/ConfigConsent.vue';
 
 const routes = [
+
+  {
+    path: '/',
+    redirect: '/login',
+  },
   {
     path: '/login',
     name: 'Login',
     component: LoginPage,
+    beforeEnter: (_to, _from, next) => {
+      const isAuthenticated = !!localStorage.getItem('cnpj');
+      if (isAuthenticated) {
+        next({ name: 'Home' });
+      } else {
+        next();
+      }
+    },
   },
   {
     path: '/register',
@@ -32,7 +44,7 @@ const routes = [
     path: '/home',
     name: 'Home',
     component: HomePage,
-    /*meta: { requiresAuth: true },*/
+    meta: { requiresAuth: true },
   },
   {
     path: '/config',
