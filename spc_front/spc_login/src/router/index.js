@@ -35,10 +35,10 @@ const routes = [
     /*meta: { requiresAuth: true },*/
   },
   {
-    path: '/form-duplicates',
-    name: 'FormDuplicate',
-    component: FormDuplicatePage
-  },
+    path: '/duplicatas',
+    name: 'Duplicatas',
+    component: FormDuplicatePage,
+  }, 
   {
     path: '/:pathMatch(.*)*',  // Para rotas desconhecidas
     redirect: '/login',
