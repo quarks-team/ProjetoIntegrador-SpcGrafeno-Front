@@ -21,6 +21,15 @@
           </v-list-item-content>
         </v-list-item>
 
+        <v-list-item link @click="navigateTo('duplicatas')" class="drawer-text">
+          <v-list-item-action>
+            <v-icon color="white"></v-icon>
+          </v-list-item-action>
+          <v-list-item-content>
+            <v-list-item-title>DUPLICATAS</v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
+
         <v-list-item link @click="navigateTo('configuracoes')" class="drawer-text">
           <v-list-item-action>
             <v-icon color="white">mdi-cog</v-icon>
