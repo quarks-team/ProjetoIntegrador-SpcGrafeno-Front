@@ -8,52 +8,52 @@
           <!-- Segmento -->
           <div class="form-group col-md-6">
             <label for="segmento" class="form-label">Segmento:</label>
-            <select v-model="form.segmento" class="form-control" required>
+            <select v-model="form.segment" class="form-control" required>
               <option value="" disabled selected>Selecione um segmento</option>
-              <option value="produto">Produto</option>
-              <option value="servico">Serviço</option>
+              <option value="goods">Goods</option>
+              <option value="services">Services</option>
             </select>
           </div>
         </div>
+
+        <!-- Área de Atuação -->
+        <div class="form-group">
+          <label for="areaAtuacao" class="form-label">Área de Atuação:</label>
+          <multiselect
+            v-model="form.areasDeAtuacao"
+            :options="areasDeAtuacao"
+            :multiple="true"
+            placeholder="Selecione as áreas de atuação"
+            label="label"
+            track-by="value"
+          />
+        </div>
+
         <div class="form-row">
-          <!-- Área de Atuação -->
+          <!-- Data de Criação -->
           <div class="form-group col-md-6">
-            <label for="areaAtuacao" class="form-label">Área de Atuação:</label>
-            <select v-model="form.areaAtuacao" class="form-control" required>
-              <option value="" disabled selected>Selecione uma área</option>
-              <option v-for="area in areasDeAtuacao" :key="area" :value="area">{{ area }}</option>
-            </select>
-          </div>
-          <!-- Endossante -->
-          <div class="form-group col-md-6">
-            <label for="endossante" class="form-label">Endossante (CNPJ ou Nome):</label>
-            <input type="text" v-model="form.endossante" class="form-control" />
+            <label for="createdAt" class="form-label">Data de Criação:</label>
+            <input type="date" v-model="form.createdDate" class="form-control" required />
           </div>
         </div>
+
         <div class="form-row">
-          <!-- Due Date -->
+          <!-- Data de Vencimento -->
           <div class="form-group col-md-6">
             <label for="dueDate" class="form-label">Data de Vencimento:</label>
             <input type="date" v-model="form.dueDate" class="form-control" required />
           </div>
-          <!-- Payment Place -->
+
+          <!-- Local de Pagamento (select de estados) -->
           <div class="form-group col-md-6">
-            <label for="paymentPlace" class="form-label">Local de Pagamento:</label>
-            <input type="text" v-model="form.paymentPlace" class="form-control" />
+            <label for="paymentPlace" class="form-label">Local de Pagamento (Estado):</label>
+            <select v-model="form.state" class="form-control" required>
+              <option value="" disabled selected>Selecione um estado</option>
+              <option v-for="estado in estados" :key="estado" :value="estado">{{ estado }}</option>
+            </select>
           </div>
         </div>
-        <div class="form-row">
-          <!-- Created At -->
-          <div class="form-group col-md-6">
-            <label for="createdAt" class="form-label">Data de Criação:</label>
-            <input type="date" v-model="form.createdAt" class="form-control" />
-          </div>
-          <!-- Kind -->
-          <div class="form-group col-md-6">
-            <label for="kind" class="form-label">Tipo de Duplicata:</label>
-            <input type="text" v-model="form.kind" class="form-control" />
-          </div>
-        </div>
+
         <!-- Botão Calcular Probabilidade -->
         <button type="submit" class="btn btn-primary w-100 mt-4">Calcular Probabilidade</button>
       </form>
@@ -72,26 +72,67 @@
 </template>
 
 <script>
+import Multiselect from 'vue-multiselect';
+import "vue-multiselect/dist/vue-multiselect.min.css";
+
 export default {
+  components: { Multiselect },
   data() {
     return {
       form: {
-        segmento: '',
-        areaAtuacao: '',
-        endossante: '',
-        dueDate: '',
-        paymentPlace: '',
-        createdAt: '',
-        kind: '',
+        segmento: "",
+        areasDeAtuacao: [],
+        paymentPlace: "",
+        dueDate: "",
+        createdAt: ""
       },
-      probabilidade: null, // Valor da probabilidade calculada
+      probabilidade: null,
       areasDeAtuacao: [
-        'COMERCIO', 'INDUSTRIA', 'DISTRIBUIDORA', 'PRODUTOS', 'PLASTICOS', 'QUIMICA', 'SERVICOS', 'ALIMENTOS', 
-        'METAIS', 'EMBALAGENS', 'TEXTIL', 'ELETRONICO', 'ELETRICOS', 'AGRICOLAS', 'MEDICAMENTOS', 'FRIGORIFICO', 
-        'PECAS', 'LOGISTICA', 'COMPONENTES', 'AGROPECUARIA', 'TRADING', 'BEBIDAS', 'SUPRIMENTOS', 'TRANSPORTE', 
-        'SIDERURGICOS', 'FARMACIA', 'DIAGNOSTICOS', 'CONSTRUCOES', 'CONSULTORIA', 'FINANCEIRA', 'ARGAMASSA', 
-        'FABRICAN', 'PETROLEO', 'TERMOPLASTICOS', 'METALURGICOS', 'SUPLEMENTOS', 'FUNDICAO', 'VEICULOS', 'EQUIPAMENTOS'
-      ]
+        { label: "COMERCIO", value: "COMERCIO" },
+        { label: "INDUSTRIA", value: "INDUSTRIA" },
+        { label: "DISTRIBUIDORA", value: "DISTRIBUIDORA" },
+        { label: "PRODUTOS", value: "PRODUTOS" },
+        { label: "PLASTICOS", value: "PLASTICOS" },
+        { label: "QUIMICA", value: "QUIMICA" },
+        { label: "SERVICOS", value: "SERVICOS" },
+        { label: "ALIMENTOS", value: "ALIMENTOS" },
+        { label: "METAIS", value: "METAIS" },
+        { label: "EMBALAGENS", value: "EMBALAGENS" },
+        { label: "TEXTIL", value: "TEXTIL" },
+        { label: "ELETRONICO", value: "ELETRONICO" },
+        { label: "ELETRICOS", value: "ELETRICOS" },
+        { label: "AGRICOLAS", value: "AGRICOLAS" },
+        { label: "MEDICAMENTOS", value: "MEDICAMENTOS" },
+        { label: "FRIGORIFICO", value: "FRIGORIFICO" },
+        { label: "PECAS", value: "PECAS" },
+        { label: "LOGISTICA", value: "LOGISTICA" },
+        { label: "COMPONENTES", value: "COMPONENTES" },
+        { label: "AGROPECUARIA", value: "AGROPECUARIA" },
+        { label: "TRADING", value: "TRADING" },
+        { label: "BEBIDAS", value: "BEBIDAS" },
+        { label: "SUPRIMENTOS", value: "SUPRIMENTOS" },
+        { label: "TRANSPORTE", value: "TRANSPORTE" },
+        { label: "SIDERURGICOS", value: "SIDERURGICOS" },
+        { label: "FARMACIA", value: "FARMACIA" },
+        { label: "DIAGNOSTICOS", value: "DIAGNOSTICOS" },
+        { label: "CONSTRUCOES", value: "CONSTRUCOES" },
+        { label: "CONSULTORIA", value: "CONSULTORIA" },
+        { label: "FINANCEIRA", value: "FINANCEIRA" },
+        { label: "ARGAMASSA", value: "ARGAMASSA" },
+        { label: "FABRICAN", value: "FABRICAN" },
+        { label: "PETROLEO", value: "PETROLEO" },
+        { label: "TERMOPLASTICOS", value: "TERMOPLASTICOS" },
+        { label: "METALURGICOS", value: "METALURGICOS" },
+        { label: "SUPLEMENTOS", value: "SUPLEMENTOS" },
+        { label: "FUNDICAO", value: "FUNDICAO" },
+        { label: "VEICULOS", value: "VEICULOS" },
+        { label: "EQUIPAMENTOS", value: "EQUIPAMENTOS" }
+]
+
+      ,
+      estados: [
+        'AL', 'AM', 'AP', 'BA', 'CE', 'ES', 'GO', 'MG', 'MS', 'PA', 'PI', 'PR', 'RJ', 'RS', 'SC', 'SE', 'SP', 'TO'
+      ],
     };
   },
   computed: {
@@ -108,6 +149,24 @@ export default {
   },
   methods: {
     calcularProbabilidade() {
+      // Calcula o mês e trimestre da data de vencimento
+      const dueDate = new Date(this.form.dueDate);
+      const month = dueDate.getMonth() + 1;
+      const quarter = Math.ceil(month / 3);
+
+      // Envia os dados para a rota no formato esperado
+      const payload = {
+        segment: this.form.segment,
+        month,
+        quarter,
+        area: this.form.area,
+        date: dueDate.toLocaleDateString('en-GB'),
+        created_date: new Date(this.form.createdDate).toLocaleDateString('en-GB'),
+        state: this.form.state,
+      };
+      
+      console.log("Payload para a rota:", payload);
+
       // Mock da probabilidade (valores aleatórios para demonstração)
       this.probabilidade = Math.floor(Math.random() * 100) + 1;
     },
@@ -139,10 +198,6 @@ export default {
   font-weight: bold;
   margin-bottom: 4px;
   margin-top: px;
-}
-
-.form-row {
-  margin-left: 20px;
 }
 
 .form-control {
@@ -192,6 +247,8 @@ export default {
 
 .form-group {
   margin-bottom: 1.5em;
+  margin-left: 20px;
+  margin-right: 20px;
 }
 .btn-primary {
   background-color: #007bff;
