@@ -4,6 +4,8 @@ import RegisterPage from '@/components/RegisterPage.vue';
 import TermsPage from '@/components/TermsPage.vue';
 import PrivacyPolicyPage from '@/components/PrivacyPolicyPage.vue';
 import HomePage from '@/components/HomePage.vue';
+import path from 'path';
+import FormDuplicatePage from '@/components/FormDuplicatePage.vue';
 
 const routes = [
   {
@@ -32,6 +34,11 @@ const routes = [
     component: HomePage,
     /*meta: { requiresAuth: true },*/
   },
+  {
+    path: '/duplicatas',
+    name: 'Duplicatas',
+    component: FormDuplicatePage,
+  }, 
   {
     path: '/:pathMatch(.*)*',  // Para rotas desconhecidas
     redirect: '/login',
