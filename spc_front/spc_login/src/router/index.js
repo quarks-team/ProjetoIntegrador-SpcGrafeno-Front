@@ -4,26 +4,14 @@ import RegisterPage from '@/components/RegisterPage.vue';
 import TermsPage from '@/components/TermsPage.vue';
 import PrivacyPolicyPage from '@/components/PrivacyPolicyPage.vue';
 import HomePage from '@/components/HomePage.vue';
-import ConfigConsent from '@/components/ConfigConsent.vue';
+import ConsentSettings from '@/components/ConsentSettings.vue';
 
 const routes = [
 
   {
-    path: '/',
-    redirect: '/login',
-  },
-  {
     path: '/login',
     name: 'Login',
     component: LoginPage,
-    beforeEnter: (_to, _from, next) => {
-      const isAuthenticated = !!localStorage.getItem('cnpj');
-      if (isAuthenticated) {
-        next({ name: 'Home' });
-      } else {
-        next();
-      }
-    },
   },
   {
     path: '/register',
@@ -48,8 +36,8 @@ const routes = [
   },
   {
     path: '/config',
-    name: 'ConfigConsent',
-    component: ConfigConsent,
+    name: 'ConsentSettings',
+    component: ConsentSettings,
   },
   {
     path: '/:pathMatch(.*)*',  // Para rotas desconhecidas

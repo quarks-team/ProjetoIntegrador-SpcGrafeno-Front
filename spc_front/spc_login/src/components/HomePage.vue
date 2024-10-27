@@ -58,7 +58,7 @@
       <v-container fluid class="background-image">
         <v-row justify="center" align="center" class="min-height">
           <v-col cols="12" md="6" class="text-center">
-            <v-card class="mx-auto" :style="{backgroundColor: '#DEF9C4'}" flat>
+            <v-card class="mx-auto" flat>
               <v-card-title class="text-center">
                 Seu Score está {{ scoreText }}
               </v-card-title>
@@ -136,19 +136,26 @@ export default {
     const scoreText = ref("");
     const scorePercentage = ref(0);
     const drawer = ref(true);
-    const cnpj = ref(localStorage.getItem('cnpj'));
-    const endorserScore = ref({ active: 0, finished: 0, canceled: 0 });
+    const endorserName = ref(localStorage.getItem('endorserName'));
     const router = useRouter();
     const username = ref(localStorage.getItem('username'));
 
     // Função para buscar o score do back-end
     const fetchEndorserScore = async () => {
       try {
-        const response = await axios.get(`http://localhost:3000/score/${cnpj.value}`);
-        score.value = response.data.score[0]["score"];
-        updateScoreText();
-        scorePercentage.value = (score.value / 10000) * 100;
-        endorserScore.value = response.data.score[0];
+        const response = await axios.get(`http://localhost:3000/score/${endorserName.value}`);
+
+        console.log("Resposta da API:", response.data);
+
+        if (response.data.score && response.data.score.length > 0){
+          const scoreData = response.data.score[0];
+          score.value = scoreData.finalScore;
+          updateScoreText();
+          scorePercentage.value = (score.value / 10000) * 100;
+        } else {
+          console.error('Nenhum score encontrado na resposta');
+        }
+        
       } 
       catch (error) {
         console.error("Erro ao buscar o score:", error);
@@ -171,7 +178,7 @@ export default {
     };
 
     const logout = () => {
-      localStorage.removeItem('cnpj');
+      localStorage.removeItem('endorserName');
       localStorage.removeItem('username');
       router.push('/login');
     };
@@ -185,8 +192,7 @@ export default {
       score,
       scoreText,
       scorePercentage,
-      cnpj,
-      endorserScore,
+      endorserName,
       username,
       logout,
       getProgressValue,
