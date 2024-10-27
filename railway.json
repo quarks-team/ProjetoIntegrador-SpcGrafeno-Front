@@ -2,7 +2,7 @@
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
     "builder": "NIXPACKS",
-    "buildCommand": "cd spc_front/spc_login && npm install && npm audit fix && npm run build",
+    "buildCommand": "npm install && npm audit fix && npm run build",
     "nixpacksPlan": {
       "providers": [
         "node"
@@ -15,7 +15,7 @@
   "deploy": {
     "runtime": "V2",
     "numReplicas": 1,
-    "startCommand": "cd spc_front/spc_login && npm run start",
+    "startCommand": "npm run start",
     "sleepApplication": false,
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
