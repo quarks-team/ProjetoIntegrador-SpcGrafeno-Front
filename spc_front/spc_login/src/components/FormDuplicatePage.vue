@@ -2,7 +2,7 @@
   <div class="duplicata-page d-flex">
     <!-- Formulário da Duplicata -->
     <div class="duplicata-form">
-      <h2 class="text-center mb-4">Inserir Parâmetros da Duplicata</h2>
+      <h2 class="text-center mb-4">Insira os dados da Duplicata</h2>
       <form @submit.prevent="calcularProbabilidade" class="p-4 border rounded shadow-sm bg-white">
         <div class="form-row">
           <!-- Segmento -->
@@ -10,8 +10,8 @@
             <label for="segmento" class="form-label">Segmento:</label>
             <select v-model="form.segment" class="form-control" required>
               <option value="" disabled selected>Selecione um segmento</option>
-              <option value="goods">Goods</option>
-              <option value="services">Services</option>
+              <option value="goods">Produtos</option>
+              <option value="services">Serviços</option>
             </select>
           </div>
         </div>
@@ -61,7 +61,7 @@
 
     <!-- Exibir Probabilidade -->
     <div class="probabilidade-card" v-if="probabilidade !== null">
-      <h3>Probabilidade Calculada</h3>
+      <h3>Probabilidade de Sucesso</h3>
       <div class="probabilidade-valor" :style="{ color: probabilidadeColor }">{{ probabilidade }}%</div>
       <div class="progress-bar-container">
         <div class="progress-bar" :style="{ width: probabilidade + '%' }"></div>
@@ -74,6 +74,8 @@
 <script>
 import Multiselect from 'vue-multiselect';
 import "vue-multiselect/dist/vue-multiselect.min.css";
+import axios from "axios";
+
 
 export default {
   components: { Multiselect },
@@ -87,6 +89,7 @@ export default {
         createdAt: ""
       },
       probabilidade: null,
+      result : { 'probability': null},
       areasDeAtuacao: [
         { label: "COMERCIO", value: "COMERCIO" },
         { label: "INDUSTRIA", value: "INDUSTRIA" },
@@ -137,38 +140,48 @@ export default {
   },
   computed: {
     probabilidadeColor() {
-      if (this.probabilidade >= 75) return 'green';
-      else if (this.probabilidade >= 50) return 'orange';
+      if (this.result >= 0.75) return 'green';
+      else if (this.result.probability >= 0.50) return 'orange';
       return 'red';
     },
     feedbackProbabilidade() {
-      if (this.probabilidade >= 75) return 'Alta probabilidade de duplicata';
-      else if (this.probabilidade >= 50) return 'Média probabilidade de duplicata';
-      return 'Baixa probabilidade de duplicata';
+      if (this.result.probability >= 0.75) return 'Alta probabilidade de ser finalizada';
+      else if (this.result.probability >= 0.50) return 'Média probabilidade de ser finalizada';
+      return 'Baixa probabilidade de ser finalizada';
     },
   },
   methods: {
-    calcularProbabilidade() {
+    
+    async calcularProbabilidade() {
       // Calcula o mês e trimestre da data de vencimento
-      const dueDate = new Date(this.form.dueDate);
-      const month = dueDate.getMonth() + 1;
-      const quarter = Math.ceil(month / 3);
+      let dueDate = new Date(this.form.dueDate);
+      let month = dueDate.getMonth() + 1;
+      let quarter = Math.ceil(month / 3);
 
       // Envia os dados para a rota no formato esperado
       const payload = {
         segment: this.form.segment,
         month,
         quarter,
-        area: this.form.area,
-        date: dueDate.toLocaleDateString('en-GB'),
-        created_date: new Date(this.form.createdDate).toLocaleDateString('en-GB'),
+        area: this.form.areasDeAtuacao.map(area => area.value),
+        date: dueDate.toLocaleDateString('en-GB').toString(),
+        created_date: new Date(this.form.createdDate).toLocaleDateString('en-GB').toString(),
         state: this.form.state,
       };
       
       console.log("Payload para a rota:", payload);
+      console.log(payload.date);
 
+      
+      try {
+        const response = await axios.post("http://127.0.0.1:8000/predict-duplicate/", payload);
+        this.result = response.data;
+      } catch (error) {
+        console.error("Erro ao enviar o formulário:", error);
+      }
+      
       // Mock da probabilidade (valores aleatórios para demonstração)
-      this.probabilidade = Math.floor(Math.random() * 100) + 1;
+      this.probabilidade = Math.round(this.result.probability * 100)
     },
   },
 };
