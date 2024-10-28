@@ -86,32 +86,32 @@
               <v-card-text v-if="endorserScore">
                 <!-- Barra de Progresso Linear para Aberto -->
               <v-progress-linear
-                :value="getProgressValue(endorserScore?.active)"
+                :value="getProgressValue(endorserScore?.ongoing_transactions)"
                 :height="20"
                 color="blue"
                 class="mb-2"
               >
-                Aberto {{ endorserScore?.active !== null ? endorserScore.active : 0 }}
+                Ativas {{ endorserScore?.ongoing_transactions !== null ? endorserScore.ongoing_transactions : 0 }}
               </v-progress-linear>
 
               <!-- Barra de Progresso Linear para Fechado -->
               <v-progress-linear
-                :value="getProgressValue(endorserScore?.finished)"
+                :value="getProgressValue(endorserScore?.successful_transactions)"
                 :height="20"
                 color="green"
                 class="mb-2"
               >
-                Fechado {{ endorserScore?.finished !== null ? endorserScore.finished : 0 }}
+                Concluída {{ endorserScore?.successful_transactions !== null ? endorserScore.successful_transactions : 0 }}
               </v-progress-linear>
 
               <!-- Barra de Progresso Linear para Cancelado -->
               <v-progress-linear
-                :value="getProgressValue(endorserScore?.canceled)"
+                :value="getProgressValue(endorserScore?.voided_transactions)"
                 :height="20"
                 color="red"
                 class="mb-2"
               >
-                Cancelado {{ endorserScore?.canceled !== null ? endorserScore.canceled : 0 }}
+                Cancelado {{ endorserScore?.voided_transactions !== null ? endorserScore.voided_transactions : 0 }}
               </v-progress-linear>
               </v-card-text>
               <v-card-text v-else>
@@ -139,6 +139,7 @@ export default {
     const endorserName = ref(localStorage.getItem('endorserName'));
     const router = useRouter();
     const username = ref(localStorage.getItem('username'));
+    const endorserScore = ref(null);
 
     // Função para buscar o score do back-end
     const fetchEndorserScore = async () => {
@@ -152,6 +153,12 @@ export default {
           score.value = scoreData.finalScore;
           updateScoreText();
           scorePercentage.value = (score.value / 10000) * 100;
+
+          endorserScore.value = {
+            ongoing_transactions: scoreData.inputVariables.ongoing_transactions,
+            successful_transactions: scoreData.inputVariables.successful_transactions,
+            voided_transactions: scoreData.inputVariables.voided_transactions,
+          };
         } else {
           console.error('Nenhum score encontrado na resposta');
         }
@@ -196,6 +203,7 @@ export default {
       username,
       logout,
       getProgressValue,
+      endorserScore,
 
       navigateTo: (page) => {
         if (page === 'contratos') {

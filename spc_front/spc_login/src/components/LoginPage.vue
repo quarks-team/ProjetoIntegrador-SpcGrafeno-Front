@@ -84,6 +84,9 @@ export default {
           const username = response.data.username;
           localStorage.setItem('username', username);
 
+          const id = response.data.id
+          localStorage.setItem('id', id);
+
           this.$router.push({ name: 'Home' });
         } catch (error) {
           console.error("Erro ao fazer login:", error);

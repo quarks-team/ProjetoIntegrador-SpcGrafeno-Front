@@ -117,12 +117,12 @@
         const router = useRouter();
         const drawer = ref(true);
         const username = ref(localStorage.getItem('username'));
-        const userId = ref(localStorage.getItem('userId'));
+        const userId = ref(localStorage.getItem('id'));
         const policies = ref([]);
         const valid = ref(false);
 
         const logout = () => {
-            localStorage.removeItem('userId');
+            localStorage.removeItem('id');
             localStorage.removeItem('username');
             router.push('/login');
         };
@@ -132,19 +132,25 @@
         };
 
         const fetchPolicies = async () => {
-      try {
-        const response = await axios.get(`http://localhost:3000/user-consent/${userId.value}`);
-        policies.value = response.data.map(policy => ({
-          id: policy.policyId,
-          description: `Descrição para política ${policy.policyId}`,
-          isActive: policy.isActive,
-          isMandatory: policy.isMandatory,
-          acceptanceDate: policy.acceptanceDate
-        }));
-      } catch (error) {
-        console.error('Erro ao buscar políticas:', error);
-      }
-    };
+  try {
+    const response = await axios.get(`http://localhost:3000/user-consent/${userId.value}`);
+    if (response.data && Array.isArray(response.data)) {
+      policies.value = response.data.map(policy => ({
+        id: policy.policyId,
+        description: `Descrição para política ${policy.policyId}`,
+        isActive: policy.isActive,
+        isMandatory: policy.isMandatory,
+        acceptanceDate: policy.acceptanceDate
+      }));
+      console.log("Políticas de consentimento buscadas:", policies.value);
+    } else {
+      console.warn("Nenhuma política de consentimento encontrada.");
+    }
+  } catch (error) {
+    console.error('Erro ao buscar políticas:', error);
+  }
+};
+
 
     const savePolicies = async () => {
       const consentData = {
@@ -180,7 +186,7 @@
       savePolicies,
       navigateTo
     };
-  }
+  } 
 };
 </script>
 
