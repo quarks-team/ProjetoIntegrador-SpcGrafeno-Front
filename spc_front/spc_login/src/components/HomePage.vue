@@ -143,7 +143,7 @@ export default {
     // Função para buscar o score do back-end
     const fetchEndorserScore = async () => {
       try {
-        const response = await axios.get(`http://localhost:3000/score/${endorserName.value}`);
+        const response = await axios.get(`http://localhost:3000/score/${username.value}`);
 
         console.log("Resposta da API:", response.data);
 

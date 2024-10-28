@@ -73,7 +73,7 @@
   
                   <v-list-item v-for="policy in policies" :key="policy.id">
                     <v-list-item-content>
-                      <v-list-item-title>{{ policy.name }}</v-list-item-title>
+                      <v-list-item-title>Política{{ policy.id }}</v-list-item-title>
                       <v-list-item-subtitle>{{ policy.description }}</v-list-item-subtitle>
                     </v-list-item-content>
                     <v-list-item-action>
@@ -115,73 +115,75 @@
   export default {
     data() {
         const router = useRouter();
-        const username = ref(localStorage.getItem('username'));
         const drawer = ref(true);
+        const username = ref(localStorage.getItem('username'));
+        const userId = ref(localStorage.getItem('userId'));
+        const policies = ref([]);
+        const valid = ref(false);
 
         const logout = () => {
-            localStorage.removeItem('endorserName');
+            localStorage.removeItem('userId');
             localStorage.removeItem('username');
             router.push('/login');
         };
 
-      return {
-        drawer,
-        username,
-        logout,
-        valid: false,
-        userId: '', 
-        policies: []
-      };
-    },
-    mounted() {
-      this.fetchPolicies();
-    },
-    methods: {
-      async fetchPolicies() {
-        try {
-          const response = await axios.get(`http://localhost:3000/user_consent?userId=${this.userId}`);
-          this.policies = response.data.map(policy => ({
-            id: policy.policyId,
-            name: `Política ${policy.policyId}`,
-            description: `Descrição para política ${policy.policyId}`,
-            isActive: policy.isActive,
-            isMandatory: policy.isMandatory,
-            acceptanceDate: policy.acceptanceDate
-          }));
-        } catch (error) {
-          console.error('Erro ao buscar políticas:', error);
-        }
-      },
-      async savePolicies() {
-        const consentData = {
-          userId: this.userId,
-          consents: this.policies.map(policy => ({
-            id: policy.id,
-            status: policy.isActive,
-            isMandatory: policy.isMandatory
-          }))
+        const navigateTo = (page) => {
+          router.push(`/${page}`);
         };
-  
-        try {
-          await axios.post('http://localhost:3000/user_consent/update', consentData);
-          this.$emit('notify', 'Permissões atualizadas com sucesso');
-        } catch (error) {
-          console.error('Erro ao salvar permissões:', error);
-          this.$emit('notify', 'Erro ao atualizar permissões');
-        }
-      },
-      navigateTo: (page) => {
-        if (page === 'contratos') {
-          router.push('/contratos');
-        } else if (page === 'config') {
-          router.push('/config');
-        } else if (page === 'home') {
-          router.push('/home');
-        }
-      },
-    },
-  };
-  </script>
+
+        const fetchPolicies = async () => {
+      try {
+        const response = await axios.get(`http://localhost:3000/user-consent/${userId.value}`);
+        policies.value = response.data.map(policy => ({
+          id: policy.policyId,
+          description: `Descrição para política ${policy.policyId}`,
+          isActive: policy.isActive,
+          isMandatory: policy.isMandatory,
+          acceptanceDate: policy.acceptanceDate
+        }));
+      } catch (error) {
+        console.error('Erro ao buscar políticas:', error);
+      }
+    };
+
+    const savePolicies = async () => {
+      const consentData = {
+        userId: userId.value,
+        consents: policies.value.map(policy => ({
+          id: policy.id,
+          status: policy.isActive,
+          isMandatory: policy.isMandatory
+        }))
+      };
+
+      try {
+        await axios.post('http://localhost:3000/user-consent/update', consentData);
+        alert('Permissões atualizadas com sucesso');
+      } catch (error) {
+        console.error('Erro ao salvar permissões:', error);
+        alert('Erro ao atualizar permissões');
+      }
+    };
+
+    onMounted(() => {
+      fetchPolicies();
+    });
+
+    return {
+      drawer,
+      username,
+      logout,
+      valid,
+      userId,
+      policies,
+      fetchPolicies,
+      savePolicies,
+      navigateTo
+    };
+  }
+};
+</script>
+
   
   <style scoped>
   .v-chip {
