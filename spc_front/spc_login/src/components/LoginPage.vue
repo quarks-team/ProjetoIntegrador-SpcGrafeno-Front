@@ -81,8 +81,11 @@ export default {
         try {
           const response = await axios.post('http://localhost:3000/user/login', payload);
 
-          const {cnpj} = response.data;
-          localStorage.setItem('cnpj', cnpj);
+          const username = response.data.username;
+          localStorage.setItem('username', username);
+
+          const id = response.data.id
+          localStorage.setItem('id', id);
 
           this.$router.push({ name: 'Home' });
         } catch (error) {

@@ -8,7 +8,6 @@
           </v-card-title>
           <v-card-text>
             <v-form v-model="valid" ref="form" lazy-validation>
-
               <!-- Nome -->
               <v-text-field
                 v-model="name"
@@ -42,58 +41,33 @@
                 required
               ></v-text-field>
 
-              <!-- Telefone -->
-              <v-text-field
-                v-model="phonenumber"
-                :rules="phonenumberRules"
-                label="Telefone"
-                required
-              ></v-text-field>
+              <v-checkbox
+                v-model="termsAccepted"
+                :rules="termsRules"
+                label="Eu aceito os termos e condições"
+              ></v-checkbox>
 
-             <!-- Aceitação dos Termos e Condições -->
-             <v-row align="center" class="mb-4">
-                <v-col cols="auto">
-                  <v-checkbox
-                    v-model="termsAccepted"
-                    :rules="termsRules"
-                    required
-                    @change="handleConsentChange"
-                  ></v-checkbox>
-                </v-col>
-                <v-col>
-                  <span>Eu aceito os 
-                    <router-link to="/termos" class="terms-link" target="_blank">
-                      termos e condições
-                    </router-link>
-                    e consinto com o uso dos meus dados conforme a 
-                    <router-link to="/politica-privacidade" class="privacy-link" target="_blank">
-                      política de privacidade
-                    </router-link>.
-                  </span>
-                </v-col>
-              </v-row>
+              <v-btn color="secondary" @click="showConsentPopup = true">Abrir Pop-up de Consentimento</v-btn>
 
-              <!-- Botão de envio do formulário -->
-              <v-btn color="primary" :disabled="!valid" @click="submit">
-                Enviar
+              <v-btn
+                :disabled="!termsAccepted || !valid"
+                color="primary"
+                @click="submit"
+              >
+                Cadastrar
               </v-btn>
             </v-form>
-
-            <!-- Link para login -->
-             <span>Já tem uma conta? </span>
-            <router-link to="/login">Faça login</router-link>
           </v-card-text>
         </v-card>
       </v-col>
     </v-row>
 
-    <!-- Pop-up de consentimento -->
+    <!-- Pop-up de Consentimento -->
     <v-dialog v-model="showConsentPopup" max-width="600px">
       <v-card>
         <v-card-title>
           <span class="headline">Gerenciamento de Consentimento</span>
         </v-card-title>
-
         <v-card-text>
           <p>
             De acordo com a Lei Geral de Proteção de Dados (LGPD), você tem o
@@ -101,20 +75,23 @@
             dados pessoais.
           </p>
 
-          <!-- Checkbox para consentimento -->
-      <v-checkbox
-        v-model="consentStatus"
-        label="Aceito o uso dos meus dados pessoais de acordo com os Termos e Condições"
-        @change="handleConsentChange"
-      ></v-checkbox>
-
-          <!-- Aviso de revogação completa -->
-          <v-alert v-if="consentStatus === 'none'" type="warning" outlined>
-            Caso não aceite os Termos e Condições e a Política de Privacidade, seus dados não serão salvos
-            em nossa base de dados e você não perderá acessar a plataforma.
-          </v-alert>
+          <!-- Lista de políticas de consentimento -->
+          <v-list dense>
+            <v-list-item v-for="policy in policies" :key="policy.id">
+              <v-list-item-content>
+                <v-list-item-title>{{ policy.name }}</v-list-item-title>
+                <v-list-item-subtitle>{{ policy.description }}</v-list-item-subtitle>
+              </v-list-item-content>
+              <v-list-item-action>
+                <v-checkbox
+                  v-model="policy.status"
+                  :disabled="policy.isMandatory"
+                  :label="policy.isMandatory ? 'Obrigatório' : 'Aceito'"
+                ></v-checkbox>
+              </v-list-item-action>
+            </v-list-item>
+          </v-list>
         </v-card-text>
-
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn text color="blue darken-1" @click="closePopup">
@@ -138,11 +115,12 @@ export default {
       name: "",
       email: "",
       password: "",
-      phonenumber: "",
       document: "",
-      termsAccepted: false, // Para verificar se os termos foram aceitos
-      showConsentPopup: false, // Controla o pop-up de consentimento
-      consentStatus: false,
+      termsAccepted: false,
+      showConsentPopup: false,
+      policies: [],
+      userId: null,
+      // Regras de validação
       nameRules: [(v) => !!v || "Nome é obrigatório"],
       emailRules: [
         (v) => !!v || "E-mail é obrigatório",
@@ -151,10 +129,6 @@ export default {
       passwordRules: [
         (v) => !!v || "Senha é obrigatória",
         (v) => v.length >= 6 || "A senha deve ter pelo menos 6 caracteres",
-      ],
-      phonenumberRules: [
-        (v) => !!v || "Número de telefone é obrigatório",
-        (v) => /^\(?\d{2}\)?[\s-]?\d{4,5}-?\d{4}$/.test(v) || "Telefone deve ser válido",
       ],
       documentRules: [
         (v) => !!v || "CPF ou CNPJ é obrigatório",
@@ -165,47 +139,81 @@ export default {
   },
   methods: {
     async submit() {
-      if (this.$refs.form.validate() && this.termsAccepted) {
-        const payload = {
-          username: this.name,
-          email: this.email,
-          password: this.password,
-          phoneNumber: this.phonenumber,
-          cnpj: this.document,
-          companyId: this.companyId,
-          consentStatus: this.consentStatus,
-          consentDate: new Date(),
-        };
+  if (this.$refs.form.validate() && this.termsAccepted) {
+    try {
+      // Criação do usuário
+      const response = await axios.post('http://localhost:3000/user', {
+        username: this.name,
+        email: this.email,
+        password: this.password,
+        cnpj: this.document || null,
+      });
 
-        try {
-          await axios.post('http://localhost:3000/user', payload);
-          alert('Usuário criado com sucesso!');
-          this.$router.push({name: 'Login'});
-        } catch (error) {
-          alert('Erro ao criar o usuário: ' + error.response.data.message);
-        }
+      // Log da resposta para depuração
+      console.log("Usuário criado com sucesso:", response.data);
+
+      // Verifique se a resposta contém o userId
+      if (response.data && response.data.id) {
+        this.userId = response.data.id; // Atribui corretamente o ID do usuário
+        console.log("User ID atribuído:", this.userId);
+
+
+          // Exibe o pop-up de consentimento
+        this.showConsentPopup = true;
+        await this.fetchPolicies(); // Chama a função para buscar políticas
+      } else {
+        throw new Error("ID do usuário não retornado.");
       }
-    },
+    } catch (error) {
+      alert('Erro ao criar o usuário: ' + error.response?.data?.message || error.message);
+    }
+  }
+},
     validateDocument(document) {
       const sanitizedDocument = document.replace(/\D/g, '');
-      const isValidLength = sanitizedDocument.length === 11 || sanitizedDocument.length === 14;
-      return isValidLength;
+      return sanitizedDocument.length === 11 || sanitizedDocument.length === 14;
     },
-    // Exibe o pop-up de consentimento quando o checkbox de termos é marcado
-    handleConsentChange() {
-      if (this.termsAccepted) {
-        this.showConsentPopup = true;
+    async fetchPolicies() {
+  // Adiciona verificação para garantir que o userId não seja undefined
+  if (this.userId) {
+    try {
+      const response = await axios.get(`http://localhost:3000/user-consent/${this.userId}`);
+      console.log("Políticas de consentimento buscadas:", response.data);
+      this.policies = response.data.map((policy) => ({
+        id: policy.policyId,
+        name: `Política ${policy.policyId}`,
+        description: `Descrição da política ${policy.policyId}`,
+        status: policy.isActive,
+        isMandatory: policy.isMandatory,
+      }));
+    } catch (error) {
+      console.error('Erro ao buscar políticas:', error.response?.data?.message || error.message);
+    }
+  } else {
+    console.error("User ID não definido. Não é possível buscar políticas.");
+  }
+},
+    async saveConsent() {
+      const consentData = {
+        userId: this.userId,
+        consents: this.policies.map((policy) => ({
+          id: policy.id,
+          status: policy.status,
+          isMandatory: policy.isMandatory,
+        })),
+      };
+
+      try {
+        await axios.post('http://localhost:3000/user-consent/update', consentData);
+        alert('Consentimento salvo com sucesso!');
+        this.$router.push({ name: 'Login' });
+      } catch (error) {
+        console.error('Erro ao salvar consentimento:', error);
       }
     },
-    saveConsent() {
-      // Lógica para salvar o status de consentimento
-      console.log("Status de consentimento salvo:", this.consentStatus);
-      this.showConsentPopup = false;
-    },
     closePopup() {
-      // Fecha o pop-up sem salvar e desmarca o checkbox
       this.showConsentPopup = false;
-      this.termsAccepted = false; // Desmarca o checkbox se o pop-up for cancelado
+      this.termsAccepted = false;
     },
   },
 };
@@ -220,7 +228,7 @@ export default {
 }
 
 .v-card {
-  background-color: rgba(255, 255, 255, 0.8); /* Transparência para o card */
+  background-color: rgba(255, 255, 255, 0.8);
 }
 
 .terms-link,
@@ -229,5 +237,6 @@ export default {
   text-decoration: underline;
 }
 </style>
+
 
   

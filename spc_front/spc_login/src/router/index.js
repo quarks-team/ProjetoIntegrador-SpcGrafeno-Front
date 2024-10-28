@@ -4,10 +4,12 @@ import RegisterPage from '@/components/RegisterPage.vue';
 import TermsPage from '@/components/TermsPage.vue';
 import PrivacyPolicyPage from '@/components/PrivacyPolicyPage.vue';
 import HomePage from '@/components/HomePage.vue';
+import ConsentSettings from '@/components/ConsentSettings.vue';
 import path from 'path';
 import FormDuplicatePage from '@/components/FormDuplicatePage.vue';
 
 const routes = [
+
   {
     path: '/login',
     name: 'Login',
@@ -32,7 +34,12 @@ const routes = [
     path: '/home',
     name: 'Home',
     component: HomePage,
-    /*meta: { requiresAuth: true },*/
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/config',
+    name: 'ConsentSettings',
+    component: ConsentSettings,
   },
   {
     path: '/duplicatas',
