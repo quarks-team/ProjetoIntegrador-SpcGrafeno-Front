@@ -8,7 +8,6 @@ const path = require('path')
 export default defineConfig({
   plugins: [
     vue(),
-    // https://github.com/vuetifyjs/vuetify-loader/tree/next/packages/vite-plugin
     vuetify({
       autoImport: true,
     }),
@@ -20,7 +19,7 @@ export default defineConfig({
     },
   },
   server: {
-    port: 9090,
+    port: 9090, // Port for local development
     proxy: {
       '/api': {
         target: 'http://localhost:3000',
@@ -29,4 +28,7 @@ export default defineConfig({
       },
     },
   },
+  preview: {
+    port: 9090,
+  }
 })

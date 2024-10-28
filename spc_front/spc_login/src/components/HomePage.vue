@@ -1,6 +1,11 @@
 <template>
   <v-app>
-    <v-navigation-drawer app v-model="drawer" permanent class="drawer-background">
+    <v-navigation-drawer
+      app
+      v-model="drawer"
+      permanent
+      class="drawer-background"
+    >
       <v-list>
         <v-list-item>
           <v-btn icon @click="goHome">
@@ -21,7 +26,22 @@
           </v-list-item-content>
         </v-list-item>
 
-        <v-list-item link @click="navigateTo('config')" class="drawer-text">
+        <router-link to="/duplicatas" class="drawer-text" exact>
+          <v-list-item link>
+            <v-list-item-action>
+              <v-icon color="white"></v-icon>
+            </v-list-item-action>
+            <v-list-item-content>
+              <v-list-item-title>DUPLICATAS</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+        </router-link>
+
+        <v-list-item
+          link
+          @click="navigateTo('configuracoes')"
+          class="drawer-text"
+        >
           <v-list-item-action>
             <v-icon color="white">mdi-cog</v-icon>
           </v-list-item-action>
@@ -31,16 +51,10 @@
         </v-list-item>
 
         <v-spacer></v-spacer>
-        
-        <v-btn
-        @click="logout"
-        class="logout-icon"
-        color="white"
-        fab
-        icon
-      >
-      <v-icon>mdi-logout</v-icon>
-      </v-btn>
+
+        <v-btn @click="logout" class="logout-icon" color="white" fab icon>
+          <v-icon>mdi-logout</v-icon>
+        </v-btn>
       </v-list>
     </v-navigation-drawer>
 
@@ -48,9 +62,7 @@
       <v-toolbar-side-icon>
         <v-icon>fas fa-tachometer-alt</v-icon>
       </v-toolbar-side-icon>
-      <v-toolbar-title>
-        SPC Score
-      </v-toolbar-title>
+      <v-toolbar-title> SPC Score </v-toolbar-title>
       <v-spacer></v-spacer>
     </v-app-bar>
 
@@ -66,15 +78,15 @@
                 <span>{{ score }}</span> de 10000
               </v-card-subtitle>
               <v-divider></v-divider>
-              
+
               <v-progress-circular
-              :value="scorePercentage"
-              :size="150"
-              color="blue"
-              class="mx-auto"
-            >
-              {{ scorePercentage.toFixed(0) }}%
-            </v-progress-circular>
+                :value="scorePercentage"
+                :size="150"
+                color="blue"
+                class="mx-auto"
+              >
+                {{ scorePercentage.toFixed(0) }}%
+              </v-progress-circular>
             </v-card>
           </v-col>
 
@@ -146,8 +158,6 @@ export default {
       try {
         const response = await axios.get(`http://localhost:3000/score/${username.value}`);
 
-        console.log("Resposta da API:", response.data);
-
         if (response.data.score && response.data.score.length > 0){
           const scoreData = response.data.score[0];
           score.value = scoreData.finalScore;
@@ -192,7 +202,7 @@ export default {
 
     onMounted(() => {
       fetchEndorserScore();
-});
+    });
 
     return {
       drawer,
@@ -205,11 +215,17 @@ export default {
       getProgressValue,
       endorserScore,
 
+      goHome: () => {
+        router.push("/home"); // Navegação para a página inicial
+      },
       navigateTo: (page) => {
-        if (page === 'contratos') {
-          router.push('/contratos');
-        } else if (page === 'config') {
-          router.push('/config');
+        if (page === "contratos") {
+          router.push("/contratos");
+        } else if (page === "config") {
+          router.push("/config");
+        } else if (page === "duplicatas") {
+          // Nova condição adicionada
+          router.push("/duplicatas");
         }
       },
     };
@@ -220,7 +236,7 @@ export default {
 <style scoped>
 .v-navigation-drawer {
   width: 200px;
-  background-color: #1679AB;
+  background-color: #1679ab;
 }
 
 .v-card {
@@ -231,8 +247,8 @@ export default {
   color: white !important;
 }
 
-.background-image{
-  background-image: url('@/assets/abstract.jpg');
+.background-image {
+  background-image: url("@/assets/abstract.jpg");
   background-size: cover;
   background-position: center;
   min-height: 100vh;
