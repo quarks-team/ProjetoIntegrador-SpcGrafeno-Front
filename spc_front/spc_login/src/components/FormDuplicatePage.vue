@@ -1,277 +1,388 @@
 <template>
-  <div class="duplicata-page d-flex">
-    <!-- Formulário da Duplicata -->
-    <div class="duplicata-form">
-      <h2 class="text-center mb-4">Insira os dados da Duplicata</h2>
-      <form @submit.prevent="calcularProbabilidade" class="p-4 border rounded shadow-sm bg-white">
-        <div class="form-row">
-          <!-- Segmento -->
-          <div class="form-group col-md-6">
-            <label for="segmento" class="form-label">Segmento:</label>
-            <select v-model="form.segment" class="form-control" required>
-              <option value="" disabled selected>Selecione um segmento</option>
-              <option value="goods">Produtos</option>
-              <option value="services">Serviços</option>
-            </select>
-          </div>
-        </div>
+  <v-app>
+    <v-navigation-drawer
+      app
+      v-model="drawer"
+      permanent
+      class="drawer-background"
+    >
+      <v-list>
+        <v-list-item>
+          <v-btn icon @click="goHome">
+            <v-icon>mdi-home</v-icon>
+          </v-btn>
+          <v-list-item-content>
+            <v-list-item-title>Bem-vindo {{ username }}</v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
+        <v-divider></v-divider>
 
-        <!-- Área de Atuação -->
-        <div class="form-group">
-          <label for="areaAtuacao" class="form-label">Área de Atuação:</label>
-          <multiselect
-            v-model="form.areasDeAtuacao"
-            :options="areasDeAtuacao"
-            :multiple="true"
-            placeholder="Selecione as áreas de atuação"
-            label="label"
-            track-by="value"
-          />
-        </div>
+        <v-list-item link @click="navigateTo('contratos')" class="drawer-text">
+          <v-list-item-action>
+            <v-icon color="white">mdi-file-document</v-icon>
+          </v-list-item-action>
+          <v-list-item-content>
+            <v-list-item-title>CONTRATOS</v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
 
-        <div class="form-row">
-          <!-- Data de Criação -->
-          <div class="form-group col-md-6">
-            <label for="createdAt" class="form-label">Data de Criação:</label>
-            <input type="date" v-model="form.createdDate" class="form-control" required />
-          </div>
-        </div>
+        <router-link to="/duplicatas" class="drawer-text" exact>
+          <v-list-item link>
+            <v-list-item-action>
+              <v-icon color="white"></v-icon>
+            </v-list-item-action>
+            <v-list-item-content>
+              <v-list-item-title>DUPLICATAS</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+        </router-link>
 
-        <div class="form-row">
-          <!-- Data de Vencimento -->
-          <div class="form-group col-md-6">
-            <label for="dueDate" class="form-label">Data de Vencimento:</label>
-            <input type="date" v-model="form.dueDate" class="form-control" required />
-          </div>
+        <v-list-item link @click="navigateTo('config')" class="drawer-text">
+          <v-list-item-action>
+            <v-icon color="white">mdi-cog</v-icon>
+          </v-list-item-action>
+          <v-list-item-content>
+            <v-list-item-title>CONFIGURAÇÕES</v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
 
-          <!-- Local de Pagamento (select de estados) -->
-          <div class="form-group col-md-6">
-            <label for="paymentPlace" class="form-label">Local de Pagamento (Estado):</label>
-            <select v-model="form.state" class="form-control" required>
-              <option value="" disabled selected>Selecione um estado</option>
-              <option v-for="estado in estados" :key="estado" :value="estado">{{ estado }}</option>
-            </select>
-          </div>
-        </div>
+        <v-spacer></v-spacer>
 
-        <!-- Botão Calcular Probabilidade -->
-        <button type="submit" class="btn btn-primary w-100 mt-4">Calcular Probabilidade</button>
-      </form>
-    </div>
+        <v-btn @click="logout" class="logout-icon" color="white" fab icon>
+          <v-icon>mdi-logout</v-icon>
+        </v-btn>
+      </v-list>
+    </v-navigation-drawer>
 
-    <!-- Exibir Probabilidade -->
-    <div class="probabilidade-card" v-if="probabilidade !== null">
-      <h3>Probabilidade de Sucesso</h3>
-      <div class="probabilidade-valor" :style="{ color: probabilidadeColor }">{{ probabilidade }}%</div>
-      <div class="progress-bar-container">
-        <div class="progress-bar" :style="{ width: probabilidade + '%' }"></div>
-      </div>
-      <p class="probabilidade-feedback">{{ feedbackProbabilidade }}</p>
-    </div>
-  </div>
+    <v-app-bar app color="green lighten-3" flat>
+      <v-toolbar-side-icon>
+        <v-icon>fas fa-tachometer-alt</v-icon>
+      </v-toolbar-side-icon>
+      <v-toolbar-title>Predição de Duplicatas</v-toolbar-title>
+      <v-spacer></v-spacer>
+    </v-app-bar>
+
+    <v-main>
+      <v-container fluid>
+        <v-row justify="center" align="center">
+          <v-col cols="12" md="6">
+            <v-card
+              class="mx-auto"
+              :style="{ backgroundColor: '#DEF9C4' }"
+              flat
+            >
+              <v-card-title class="text-center"
+                >Calcular Probabilidade de Duplicata</v-card-title
+              >
+
+              <v-card-text>
+                <v-form ref="form" v-model="valid">
+                  <div class="form-row">
+                    <br>
+                    <div class="form-group col-md-6">
+                      <label for="createdAt" class="form-label"
+                        >Data de Criação:</label
+                      >
+                      <input
+                        type="date"
+                        v-model="duplicata.createdAt"
+                        class="form-control"
+                        required
+                      />
+                    </div>
+                    <br>
+                  </div>
+
+                  <div class="form-row">
+                    <br>
+                    <div class="form-group col-md-6">
+                      <label for="dueDate" class="form-label"
+                        >Data de Vencimento:</label
+                      >
+                      <input
+                        type="date"
+                        v-model="duplicata.dueDate"
+                        class="form-control"
+                        required
+                      />
+                    </div>
+                    <br>
+                  </div>
+
+                  <v-select
+                    v-model="duplicata.segmento"
+                    :items="segmentos"
+                    label="Segmento"
+                    :rules="[rules.required]"
+                    required
+                  ></v-select>
+
+                  <v-select
+                    v-model="duplicata.areasDeAtuacao"
+                    :items="areas"
+                    label="Área de Atuação"
+                    :rules="[rules.required]"
+                    multiple
+                    required
+                  ></v-select>
+
+                  <v-select
+                    v-model="duplicata.estado"
+                    :items="estados"
+                    label="Estado"
+                    :rules="[rules.required]"
+                    required
+                  ></v-select>
+
+                  <!-- Button to Calculate Probability -->
+                  <button
+                    type="submit"
+                    @click.prevent="calcularProbabilidade"
+                    class="btn btn-primary w-100 mt-4"
+                  >
+                    Calcular Probabilidade
+                  </button>
+                </v-form>
+
+                <v-divider></v-divider>
+
+                <!-- Exibir Probabilidade -->
+                <div class="probabilidade-card" v-if="resultado">
+                  <h3>Probabilidade de Sucesso</h3>
+                  <div
+                    class="probabilidade-valor"
+                    :style="{ color: probabilidadeColor }"
+                  >
+                    {{ resultado.confianca }}%
+                  </div>
+                  <div
+                    class="progress-bar-container"
+                    style="
+                      background-color: #e0e0e0;
+                      border-radius: 5px;
+                      overflow: hidden;
+                    "
+                  >
+                    <div
+                      class="progress-bar"
+                      :style="{
+                        width: resultado.confianca + '%',
+                        height: '10px',
+                        backgroundColor: probabilidadeColor,
+                      }"
+                    ></div>
+                  </div>
+                  <p class="probabilidade-feedback">
+                    {{ feedbackProbabilidade }}
+                  </p>
+                </div>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-container>
+    </v-main>
+  </v-app>
 </template>
 
 <script>
-import Multiselect from 'vue-multiselect';
-import "vue-multiselect/dist/vue-multiselect.min.css";
+import { ref } from "vue";
 import axios from "axios";
-
+import { useRouter } from "vue-router";
 
 export default {
-  components: { Multiselect },
-  data() {
-    return {
-      form: {
-        segmento: "",
-        areasDeAtuacao: [],
-        paymentPlace: "",
-        dueDate: "",
-        createdAt: ""
-      },
-      probabilidade: null,
-      result : { 'probability': null},
-      areasDeAtuacao: [
-        { label: "COMERCIO", value: "COMERCIO" },
-        { label: "INDUSTRIA", value: "INDUSTRIA" },
-        { label: "DISTRIBUIDORA", value: "DISTRIBUIDORA" },
-        { label: "PRODUTOS", value: "PRODUTOS" },
-        { label: "PLASTICOS", value: "PLASTICOS" },
-        { label: "QUIMICA", value: "QUIMICA" },
-        { label: "SERVICOS", value: "SERVICOS" },
-        { label: "ALIMENTOS", value: "ALIMENTOS" },
-        { label: "METAIS", value: "METAIS" },
-        { label: "EMBALAGENS", value: "EMBALAGENS" },
-        { label: "TEXTIL", value: "TEXTIL" },
-        { label: "ELETRONICO", value: "ELETRONICO" },
-        { label: "ELETRICOS", value: "ELETRICOS" },
-        { label: "AGRICOLAS", value: "AGRICOLAS" },
-        { label: "MEDICAMENTOS", value: "MEDICAMENTOS" },
-        { label: "FRIGORIFICO", value: "FRIGORIFICO" },
-        { label: "PECAS", value: "PECAS" },
-        { label: "LOGISTICA", value: "LOGISTICA" },
-        { label: "COMPONENTES", value: "COMPONENTES" },
-        { label: "AGROPECUARIA", value: "AGROPECUARIA" },
-        { label: "TRADING", value: "TRADING" },
-        { label: "BEBIDAS", value: "BEBIDAS" },
-        { label: "SUPRIMENTOS", value: "SUPRIMENTOS" },
-        { label: "TRANSPORTE", value: "TRANSPORTE" },
-        { label: "SIDERURGICOS", value: "SIDERURGICOS" },
-        { label: "FARMACIA", value: "FARMACIA" },
-        { label: "DIAGNOSTICOS", value: "DIAGNOSTICOS" },
-        { label: "CONSTRUCOES", value: "CONSTRUCOES" },
-        { label: "CONSULTORIA", value: "CONSULTORIA" },
-        { label: "FINANCEIRA", value: "FINANCEIRA" },
-        { label: "ARGAMASSA", value: "ARGAMASSA" },
-        { label: "FABRICAN", value: "FABRICAN" },
-        { label: "PETROLEO", value: "PETROLEO" },
-        { label: "TERMOPLASTICOS", value: "TERMOPLASTICOS" },
-        { label: "METALURGICOS", value: "METALURGICOS" },
-        { label: "SUPLEMENTOS", value: "SUPLEMENTOS" },
-        { label: "FUNDICAO", value: "FUNDICAO" },
-        { label: "VEICULOS", value: "VEICULOS" },
-        { label: "EQUIPAMENTOS", value: "EQUIPAMENTOS" }
-]
+  setup() {
+    const duplicata = ref({
+      dueDate: "",
+      createdAt: "",
+      segmento: "",
+      areasDeAtuacao: [],
+      estado: "",
+    });
 
-      ,
-      estados: [
-        'AL', 'AM', 'AP', 'BA', 'CE', 'ES', 'GO', 'MG', 'MS', 'PA', 'PI', 'PR', 'RJ', 'RS', 'SC', 'SE', 'SP', 'TO'
-      ],
+    const resultado = ref(null);
+    const valid = ref(false);
+    const drawer = ref(true);
+    const username = ref(localStorage.getItem("username"));
+    const router = useRouter();
+
+    const segmentos = ["produto", "serviço"];
+    const areas = [
+      "COMERCIO",
+      "INDUSTRIA",
+      "DISTRIBUIDORA",
+      "PRODUTOS",
+      "PLASTICOS",
+      "QUIMICA",
+      "SERVIÇOS",
+      "ALIMENTOS",
+      "METAIS",
+      "EMBALAGENS",
+      "TEXTIL",
+      "ELETRONICO",
+      "ELETRICS",
+      "AGRICOLAS",
+      "MEDICAMENTOS",
+      "FRIGORIFICO",
+      "PECAS",
+      "LOGISTICA",
+      "COMPONENTES",
+      "AGROPECUARIA",
+      "TRADING",
+      "BEBIDAS",
+      "SUPRIMENTOS",
+      "TRANSPORTE",
+      "SIDERURGICOS",
+      "FARMACIA",
+      "DIAGNOSTICOS",
+      "CONSTRUCOES",
+      "CONSULTORIA",
+      "FINANCEIRA",
+      "ARGAMASSA",
+      "FABRICAN",
+      "PETROLEO",
+      "TERMOPLASTICOS",
+      "METALURGICOS",
+      "SUPLEMENTOS",
+      "FUNDICAO",
+      "VEICULOS",
+      "EQUIPAMENTOS",
+    ];
+    const estados = [
+      "AL",
+      "AM",
+      "AP",
+      "BA",
+      "CE",
+      "ES",
+      "GO",
+      "MG",
+      "MS",
+      "PA",
+      "PI",
+      "PR",
+      "RJ",
+      "RS",
+      "SC",
+      "SE",
+      "SP",
+      "TO",
+    ];
+
+    const rules = {
+      required: (value) => !!value || "Campo obrigatório.",
     };
-  },
-  computed: {
-    probabilidadeColor() {
-      if (this.result >= 0.75) return 'green';
-      else if (this.result.probability >= 0.50) return 'orange';
-      return 'red';
-    },
-    feedbackProbabilidade() {
-      if (this.result.probability >= 0.75) return 'Alta probabilidade de ser finalizada';
-      else if (this.result.probability >= 0.50) return 'Média probabilidade de ser finalizada';
-      return 'Baixa probabilidade de ser finalizada';
-    },
-  },
-  methods: {
-    
-    async calcularProbabilidade() {
-      // Calcula o mês e trimestre da data de vencimento
-      let dueDate = new Date(this.form.dueDate);
-      let month = dueDate.getMonth() + 1;
-      let quarter = Math.ceil(month / 3);
 
-      // Envia os dados para a rota no formato esperado
-      const payload = {
-        segment: this.form.segment,
-        month,
-        quarter,
-        area: this.form.areasDeAtuacao.map(area => area.value),
-        date: dueDate.toLocaleDateString('en-GB').toString(),
-        created_date: new Date(this.form.createdDate).toLocaleDateString('en-GB').toString(),
-        state: this.form.state,
-      };
-      
-      console.log("Payload para a rota:", payload);
-      console.log(payload.date);
+    const feedbackProbabilidade = ref("");
+    const probabilidadeColor = ref("#000"); // Default color
 
-      
-      try {
-        const response = await axios.post("http://127.0.0.1:8000/predict-duplicate/", payload);
-        this.result = response.data;
-      } catch (error) {
-        console.error("Erro ao enviar o formulário:", error);
+    const calcularProbabilidade = async () => {
+      if (valid.value) {
+        let dueDate = new Date(duplicata.value.dueDate);
+        let month = dueDate.getMonth() + 1;
+        let quarter = Math.ceil(month / 3);
+
+        const payload = {
+          segment: duplicata.value.segmento,
+          month,
+          quarter,
+          area: duplicata.value.areasDeAtuacao,
+          date: dueDate.toLocaleDateString("en-GB"),
+          created_date: new Date(duplicata.value.createdAt).toLocaleDateString(
+            "en-GB"
+          ),
+          state: duplicata.value.estado,
+        };
+
+        console.log("Payload para a rota:", payload);
+
+        try {
+          const response = await axios.post(
+            "http://localhost:8000/predict-duplicate/",
+            payload
+          );
+          resultado.value = response.data;
+
+          console.log("Json de retorno:", response.data);
+
+          // Ajuste aqui para usar 'probability' em vez de 'confianca'
+          const confidence = resultado.value.probability * 100; // Transformar para porcentagem
+          feedbackProbabilidade.value =
+            confidence > 70
+              ? "Alta probabilidade de sucesso!"
+              : "Baixa probabilidade de sucesso.";
+          probabilidadeColor.value = confidence > 70 ? "green" : "red";
+
+          // Atualiza o resultado para exibir a confiança
+          resultado.value.confianca = confidence; // Adiciona 'confianca' ao objeto para usar na exibição
+        } catch (error) {
+          console.error("Erro ao calcular a probabilidade:", error);
+        }
       }
-      
-      // Mock da probabilidade (valores aleatórios para demonstração)
-      this.probabilidade = Math.round(this.result.probability * 100)
-    },
+    };
+
+    const logout = () => {
+      localStorage.removeItem("cnpj");
+      localStorage.removeItem("token");
+      localStorage.removeItem("username");
+      router.push("/login");
+    };
+
+    const goHome = () => {
+      router.push("/home");
+    };
+
+    const navigateTo = (page) => {
+      const routes = {
+        contratos: "/contratos",
+        config: "/config",
+        duplicatas: "/duplicatas",
+      };
+
+      const route = routes[page] || "/home";
+      router.push(route);
+    };
+
+    return {
+      duplicata,
+      resultado,
+      valid,
+      drawer,
+      username,
+      segmentos,
+      areas,
+      estados,
+      rules,
+      feedbackProbabilidade,
+      probabilidadeColor,
+      calcularProbabilidade,
+      logout,
+      goHome,
+      navigateTo,
+    };
   },
 };
 </script>
 
 <style scoped>
-.duplicata-page {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  gap: 20px;
-  padding: 20px;
-  background: url('@/assets/abstract.jpg');
-}
-
-.duplicata-form {
-  max-width: 900px;
-  margin: 20px;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  padding: 50px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.form-label {
-  font-weight: bold;
-  margin-bottom: 4px;
-  margin-top: px;
-}
-
-.form-control {
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  margin-top: 10px;
-  margin-right: 10px;
-  margin-left: 10px;
-}
-
-.form-control:focus {
-  outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 5px rgba(0, 123, 255, 0.25);
-}
-
-.probabilidade-card {
-  max-width: 300px;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  text-align: center;
-  background-color: #fff;
-}
-
-.probabilidade-valor {
-  font-size: 2.5em;
-  font-weight: bold;
-  margin: 10px 0;
-}
-
 .progress-bar-container {
-  width: 100%;
-  background-color: #e9ecef;
-  border-radius: 8px;
-  height: 20px;
-  margin: 10px 0;
+  background-color: #e0e0e0;
+  border-radius: 5px;
+  overflow: hidden;
+  margin-top: 10px;
 }
 
 .progress-bar {
-  height: 100%;
-  border-radius: 8px;
-  background-color: #007bff;
-  transition: width 0.3s;
+  height: 10px;
+  background-color: green; /* Default background color */
 }
 
-.form-group {
-  margin-bottom: 1.5em;
-  margin-left: 20px;
-  margin-right: 20px;
-}
-.btn-primary {
-  background-color: #007bff;
-  color: #fff;
-  padding: 12px;
-  border: none;
-  border-radius: 4px;
-  transition: background-color 0.3s;
-}
-.btn-primary:hover {
-  background-color: #0056b3;
+.probabilidade-card {
+  margin-top: 20px;
+  padding: 15px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #f9f9f9; /* Light background color */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 </style>
