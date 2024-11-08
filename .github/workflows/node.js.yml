@@ -32,9 +32,8 @@ jobs:
       # Step 4: Install dependencies
       - name: Install dependencies
         run: npm ci
-        working-directory: spc_front/spc_login
-
+        
       # Step 5: Run unit and integration tests
       - name: Run tests
         run: npm run test:unit
-        working-directory: spc_front/spc_login
+        
