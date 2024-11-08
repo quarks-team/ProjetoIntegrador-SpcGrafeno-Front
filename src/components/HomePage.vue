@@ -8,9 +8,11 @@
     >
       <v-list>
         <v-list-item>
-          <v-btn icon @click="goHome">
+          <v-btn icon @click="navigateTo('home')">
             <v-icon>mdi-home</v-icon>
           </v-btn>
+          <v-spacer></v-spacer>
+
           <v-list-item-content>
             <v-list-item-title>Bem vindo {{ username }}</v-list-item-title>
           </v-list-item-content>
@@ -26,22 +28,16 @@
           </v-list-item-content>
         </v-list-item>
 
-        <router-link to="/duplicatas" class="drawer-text" exact>
-          <v-list-item link>
-            <v-list-item-action>
-              <v-icon color="white"></v-icon>
-            </v-list-item-action>
-            <v-list-item-content>
-              <v-list-item-title>DUPLICATAS</v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-        </router-link>
+        <v-list-item link @click="navigateTo('duplicatas')" class="drawer-text">
+          <v-list-item-action>
+            <v-icon color="white">mdi-calendar-clock</v-icon>
+          </v-list-item-action>
+          <v-list-item-content>
+            <v-list-item-title>DUPLICATAS</v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
 
-        <v-list-item
-          link
-          @click="navigateTo('configuracoes')"
-          class="drawer-text"
-        >
+        <v-list-item link @click="navigateTo('config')" class="drawer-text">
           <v-list-item-action>
             <v-icon color="white">mdi-cog</v-icon>
           </v-list-item-action>
@@ -139,8 +135,8 @@
 
 <script>
 import { ref, onMounted } from "vue";
-import axios from "axios";
 import { useRouter } from "vue-router";
+import { grafenoAPI} from "@/base_url/baseUrlNode";
 
 export default {
   setup() {
@@ -153,10 +149,20 @@ export default {
     const username = ref(localStorage.getItem('username'));
     const endorserScore = ref(null);
 
+    const logout = () => {
+      localStorage.removeItem('endorserName');
+      localStorage.removeItem('username');
+      router.push('/login');
+    };
+
+    const navigateTo = (page) => {
+          router.push(`/${page}`);
+        };
+
     // Função para buscar o score do back-end
     const fetchEndorserScore = async () => {
       try {
-        const response = await axios.get(`http://localhost:3000/score/${username.value}`);
+        const response = await grafenoAPI.get(`/score/${username.value}`);
 
         if (response.data.score && response.data.score.length > 0){
           const scoreData = response.data.score[0];
@@ -194,12 +200,6 @@ export default {
       return (value / 100) * 100;
     };
 
-    const logout = () => {
-      localStorage.removeItem('endorserName');
-      localStorage.removeItem('username');
-      router.push('/login');
-    };
-
     onMounted(() => {
       fetchEndorserScore();
     });
@@ -214,20 +214,7 @@ export default {
       logout,
       getProgressValue,
       endorserScore,
-
-      goHome: () => {
-        router.push("/home"); // Navegação para a página inicial
-      },
-      navigateTo: (page) => {
-        if (page === "contratos") {
-          router.push("/contratos");
-        } else if (page === "config") {
-          router.push("/config");
-        } else if (page === "duplicatas") {
-          // Nova condição adicionada
-          router.push("/duplicatas");
-        }
-      },
+      navigateTo
     };
   },
 };

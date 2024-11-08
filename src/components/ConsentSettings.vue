@@ -21,6 +21,15 @@
           </v-list-item-content>
         </v-list-item>
 
+        <v-list-item link @click="navigateTo('duplicatas')" class="drawer-text">
+          <v-list-item-action>
+            <v-icon color="white">mdi-calendar-clock</v-icon>
+          </v-list-item-action>
+          <v-list-item-content>
+            <v-list-item-title>DUPLICATAS</v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
+
         <v-list-item link @click="navigateTo('config')" class="drawer-text">
           <v-list-item-action>
             <v-icon color="white">mdi-cog</v-icon>
@@ -109,8 +118,8 @@
   
   <script>
     import { ref, onMounted } from "vue";
-    import axios from "axios";
     import { useRouter } from "vue-router";
+    import { grafenoAPI} from "@/base_url/baseUrlNode";
   
   export default {
     data() {
@@ -133,7 +142,7 @@
 
         const fetchPolicies = async () => {
   try {
-    const response = await axios.get(`http://localhost:3000/user-consent/${userId.value}`);
+    const response = grafenoAPI.get(`/user-consent/${userId.value}`);
     if (response.data && Array.isArray(response.data)) {
       policies.value = response.data.map(policy => ({
         id: policy.policyId,
@@ -163,7 +172,7 @@
       };
 
       try {
-        await axios.post('http://localhost:3000/user-consent/update', consentData);
+        await grafenoAPI.post('/user-consent/update', consentData);
         alert('Permissões atualizadas com sucesso');
       } catch (error) {
         console.error('Erro ao salvar permissões:', error);

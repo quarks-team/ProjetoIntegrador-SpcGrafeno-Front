@@ -322,8 +322,6 @@ export default {
     };
 
     const logout = () => {
-      localStorage.removeItem("cnpj");
-      localStorage.removeItem("token");
       localStorage.removeItem("username");
       router.push("/login");
     };
