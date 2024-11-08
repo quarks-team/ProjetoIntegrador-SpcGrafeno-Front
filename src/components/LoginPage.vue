@@ -26,9 +26,9 @@
               ></v-text-field>
               <v-btn color="primary" @click="login">Login</v-btn>
             </v-form>
-          
-      <!-- Link para página de cadastro -->
-      <div class="mt-4">
+
+            <!-- Link para página de cadastro -->
+            <div class="mt-4">
               <span>Não tem uma conta? </span>
               <router-link to="/register" color="primary">Cadastre-se</router-link>
             </div>
@@ -50,7 +50,7 @@
 </template>
 
 <script>
-import axios from 'axios';
+import { grafenoAPI } from '@/base_url/baseUrlNode.js'; 
 
 export default {
   name: "LoginPage",
@@ -79,12 +79,12 @@ export default {
         };
 
         try {
-          const response = await axios.post('http://localhost:3000/user/login', payload);
+          const response = await grafenoAPI.post('/user/login', payload);
 
           const username = response.data.username;
           localStorage.setItem('username', username);
 
-          const id = response.data.id
+          const id = response.data.id;
           localStorage.setItem('id', id);
 
           this.$router.push({ name: 'Home' });
@@ -112,3 +112,4 @@ export default {
   object-fit: contain;
 }
 </style>
+

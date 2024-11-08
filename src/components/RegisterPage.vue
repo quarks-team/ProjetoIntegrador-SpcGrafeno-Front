@@ -29,7 +29,6 @@
                 v-model="document"
                 :rules="documentRules"
                 label="CPF ou CNPJ"
-                required
               ></v-text-field>
 
               <!-- Senha -->
@@ -105,7 +104,7 @@
 </template>
 
 <script>
-import axios from 'axios';
+import { grafenoAPI } from '@/base_url/baseUrlNode';
 
 export default {
   name: "RegisterPage",
@@ -131,7 +130,6 @@ export default {
         (v) => v.length >= 6 || "A senha deve ter pelo menos 6 caracteres",
       ],
       documentRules: [
-        (v) => !!v || "CPF ou CNPJ é obrigatório",
         (v) => this.validateDocument(v) || "CPF ou CNPJ deve ser válido",
       ],
       termsRules: [(v) => !!v || "Você deve aceitar os termos e condições"],
@@ -142,7 +140,7 @@ export default {
   if (this.$refs.form.validate() && this.termsAccepted) {
     try {
       // Criação do usuário
-      const response = await axios.post('http://localhost:3000/user', {
+      const response = await grafenoAPI.post('/user', {
         username: this.name,
         email: this.email,
         password: this.password,
@@ -152,23 +150,20 @@ export default {
       // Log da resposta para depuração
       console.log("Usuário criado com sucesso:", response.data);
 
-      // Verifique se a resposta contém o userId
+      // Verificação do ID do usuário
       if (response.data && response.data.id) {
-        this.userId = response.data.id; // Atribui corretamente o ID do usuário
-        console.log("User ID atribuído:", this.userId);
-
-
-          // Exibe o pop-up de consentimento
-        this.showConsentPopup = true;
-        await this.fetchPolicies(); // Chama a função para buscar políticas
-      } else {
-        throw new Error("ID do usuário não retornado.");
+            this.userId = response.data.id;
+            this.showConsentPopup = true;
+            await this.fetchPolicies();
+          } else {
+            throw new Error("ID do usuário não retornado.");
+          }
+        } catch (error) {
+          alert('Erro ao criar o usuário: ' + error.response?.data?.message || error.message);
+        }
       }
-    } catch (error) {
-      alert('Erro ao criar o usuário: ' + error.response?.data?.message || error.message);
-    }
-  }
-},
+    },
+
     validateDocument(document) {
       const sanitizedDocument = document.replace(/\D/g, '');
       return sanitizedDocument.length === 11 || sanitizedDocument.length === 14;
@@ -177,7 +172,7 @@ export default {
   // Adiciona verificação para garantir que o userId não seja undefined
   if (this.userId) {
     try {
-      const response = await axios.get(`http://localhost:3000/user-consent/${this.userId}`);
+      const response = await grafenoAPI.get(`/user-consent/${this.userId}`);
       console.log("Políticas de consentimento buscadas:", response.data);
       this.policies = response.data.map((policy) => ({
         id: policy.policyId,
@@ -204,7 +199,7 @@ export default {
       };
 
       try {
-        await axios.post('http://localhost:3000/user-consent/update', consentData);
+        await grafenoAPI.post('/user-consent/update', consentData);
         alert('Consentimento salvo com sucesso!');
         this.$router.push({ name: 'Login' });
       } catch (error) {
