@@ -8,9 +8,11 @@
     >
       <v-list>
         <v-list-item>
-          <v-btn icon @click="goHome">
+          <v-btn icon @click="navigateTo('home')">
             <v-icon>mdi-home</v-icon>
           </v-btn>
+          <v-spacer></v-spacer>
+
           <v-list-item-content>
             <v-list-item-title>Bem-vindo {{ username }}</v-list-item-title>
           </v-list-item-content>
@@ -26,16 +28,14 @@
           </v-list-item-content>
         </v-list-item>
 
-        <router-link to="/duplicatas" class="drawer-text" exact>
-          <v-list-item link>
-            <v-list-item-action>
-              <v-icon color="white"></v-icon>
-            </v-list-item-action>
-            <v-list-item-content>
-              <v-list-item-title>DUPLICATAS</v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-        </router-link>
+        <v-list-item link @click="navigateTo('duplicatas')" class="drawer-text">
+          <v-list-item-action>
+            <v-icon color="white">mdi-calendar-clock</v-icon>
+          </v-list-item-action>
+          <v-list-item-content>
+            <v-list-item-title>DUPLICATAS</v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
 
         <v-list-item link @click="navigateTo('config')" class="drawer-text">
           <v-list-item-action>
@@ -55,59 +55,104 @@
     </v-navigation-drawer>
 
     <v-app-bar app color="green lighten-3" flat>
+      <v-container class="d-flex justify-center align-center">
+      <div class="spc-score">
       <v-toolbar-side-icon>
-        <v-icon>fas fa-tachometer-alt</v-icon>
+        <v-icon class="icon" large>mdi-calendar-arrow-right</v-icon>
       </v-toolbar-side-icon>
-      <v-toolbar-title>Predição de Duplicatas</v-toolbar-title>
+      <v-toolbar-title> Predição de Duplicatas </v-toolbar-title>
+    </div>
+  </v-container>
       <v-spacer></v-spacer>
     </v-app-bar>
 
     <v-main>
-      <v-container fluid>
-        <v-row justify="center" align="center">
-          <v-col cols="12" md="6">
-            <v-card
-              class="mx-auto"
-              :style="{ backgroundColor: '#DEF9C4' }"
-              flat
-            >
-              <v-card-title class="text-center"
-                >Calcular Probabilidade de Duplicata</v-card-title
-              >
+      <v-container fluid class="background-image">
+        <v-row justify="center" align="center" class="min-height">
+          <v-col cols="12" md="6" class="text-center">
+            <v-card class="mx-auto" flat>
+              <v-card-title max-width="600px" class="pa-4" elevation="2">Calcular a Probabilidade </v-card-title>
+              <v-divider></v-divider>
 
               <v-card-text>
                 <v-form ref="form" v-model="valid">
                   <div class="form-row">
-                    <br>
-                    <div class="form-group col-md-6">
-                      <label for="createdAt" class="form-label"
-                        >Data de Criação:</label
-                      >
-                      <input
-                        type="date"
-                        v-model="duplicata.createdAt"
-                        class="form-control"
-                        required
-                      />
-                    </div>
-                    <br>
+                  <br />
+                  <div class="form-group col-md-6">
+                    <label for="createdAt" class="form-label">Data de Criação:</label>
+                    <v-layout row wrap>
+                      <v-flex xs12 sm6 md4>
+                        <v-menu
+                          ref="menu"
+                          v-model="menu"
+                          :close-on-content-click="false"
+                          :nudge-right="40"
+                          :return-value.sync="duplicata.createdAt"
+                          lazy
+                          transition="scale-transition"
+                          offset-y
+                          full-width
+                          min-width="290px"
+                        >
+                          <template v-slot:activator="{ on }">
+                            <v-text-field
+                              v-model="duplicata.createdAt"
+                              label="Data de Criação"
+                              prepend-icon="event"
+                              readonly
+                              v-on="on"
+                            ></v-text-field>
+                          </template>
+                          <v-date-picker v-model="duplicata.createdAt" no-title scrollable>
+                            <v-spacer></v-spacer>
+                            <v-btn flat color="primary" @click="menu = false">Cancelar</v-btn>
+                            <v-btn flat color="primary" @click="$refs.menu.save(duplicata.createdAt)">OK</v-btn>
+                          </v-date-picker>
+                        </v-menu>
+                      </v-flex>
+                    </v-layout>
                   </div>
+                  <br />
+                </div>
 
-                  <div class="form-row">
-                    <br>
-                    <div class="form-group col-md-6">
-                      <label for="dueDate" class="form-label"
-                        >Data de Vencimento:</label
+                <div class="form-row">
+                <br />
+                <div class="form-group col-md-6">
+                  <label for="dueDate" class="form-label">Data de Vencimento:</label>
+                  <v-layout row wrap>
+                    <v-flex xs12 sm6 md4>
+                      <v-menu
+                        ref="menuDueDate"
+                        v-model="menuDueDate"
+                        :close-on-content-click="false"
+                        :nudge-right="40"
+                        :return-value.sync="duplicata.dueDate"
+                        lazy
+                        transition="scale-transition"
+                        offset-y
+                        full-width
+                        min-width="290px"
                       >
-                      <input
-                        type="date"
-                        v-model="duplicata.dueDate"
-                        class="form-control"
-                        required
-                      />
-                    </div>
-                    <br>
-                  </div>
+                        <template v-slot:activator="{ on }">
+                          <v-text-field
+                            v-model="duplicata.dueDate"
+                            label="Data de Vencimento"
+                            prepend-icon="event"
+                            readonly
+                            v-on="on"
+                          ></v-text-field>
+                        </template>
+                        <v-date-picker v-model="duplicata.dueDate" no-title scrollable>
+                          <v-spacer></v-spacer>
+                          <v-btn flat color="primary" @click="menuDueDate = false">Cancelar</v-btn>
+                          <v-btn flat color="primary" @click="$refs.menuDueDate.save(duplicata.dueDate)">OK</v-btn>
+                        </v-date-picker>
+                      </v-menu>
+                    </v-flex>
+                  </v-layout>
+                </div>
+                <br />
+              </div>
 
                   <v-select
                     v-model="duplicata.segmento"
@@ -135,13 +180,13 @@
                   ></v-select>
 
                   <!-- Button to Calculate Probability -->
-                  <button
+                  <v-button
                     type="submit"
                     @click.prevent="calcularProbabilidade"
                     class="btn btn-primary w-100 mt-4"
                   >
                     Calcular Probabilidade
-                  </button>
+                  </v-button>
                 </v-form>
 
                 <v-divider></v-divider>
@@ -326,20 +371,9 @@ export default {
       router.push("/login");
     };
 
-    const goHome = () => {
-      router.push("/home");
-    };
-
     const navigateTo = (page) => {
-      const routes = {
-        contratos: "/contratos",
-        config: "/config",
-        duplicatas: "/duplicatas",
-      };
-
-      const route = routes[page] || "/home";
-      router.push(route);
-    };
+      router.push(`/${page}`);
+        }; 
 
     return {
       duplicata,
@@ -355,7 +389,6 @@ export default {
       probabilidadeColor,
       calcularProbabilidade,
       logout,
-      goHome,
       navigateTo,
     };
   },
@@ -382,5 +415,40 @@ export default {
   border-radius: 8px;
   background-color: #f9f9f9; /* Light background color */
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+.v-chip {
+  margin-left: 10px;
+}
+.v-navigation-drawer {
+  width: 200px;
+  background-color: #1679AB;
+}
+.v-card {
+  padding: 64px;
+}
+.drawer-text {
+  color: white !important;
+}
+.background-image{
+  background-image: url('@/assets/abstract.jpg');
+  background-size: cover;
+  background-position: center;
+  min-height: 100vh;
+}
+.min-height {
+  min-height: 100vh;
+}
+.logout-icon {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+}
+.spc-score {
+  display: flex;
+  align-items: center;
+}
+.spc-score .icon {
+  margin-right: 4px;
+  font-size: 35px;
 }
 </style>
