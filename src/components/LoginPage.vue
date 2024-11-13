@@ -9,21 +9,10 @@
           </v-card-title>
           <v-card-text>
             <v-form ref="form" v-model="valid" lazy-validation>
-              <v-text-field
-                v-model="email"
-                label="E-mail"
-                :rules="[emailRules]"
-                required
-              ></v-text-field>
-              <v-text-field
-                v-model="password"
-                label="Senha"
-                :type="showPassword ? 'text' : 'password'"
-                :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-                @click:append="showPassword = !showPassword"
-                :rules="[passwordRules]"
-                required
-              ></v-text-field>
+              <v-text-field v-model="email" label="E-mail" :rules="[emailRules]" required></v-text-field>
+              <v-text-field v-model="password" label="Senha" :type="showPassword ? 'text' : 'password'"
+                :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'" @click:append="showPassword = !showPassword"
+                :rules="[passwordRules]" required></v-text-field>
               <v-btn color="primary" @click="login">Login</v-btn>
             </v-form>
 
@@ -38,19 +27,14 @@
 
       <!-- Coluna Direita (Imagem) -->
       <v-col cols="12" md="6">
-        <v-img
-          src="/little_pig.jpg"
-          alt="Little Pig"
-          class="right-image"
-          contain
-        ></v-img>
+        <v-img src="/little_pig.jpg" alt="Little Pig" class="right-image" contain></v-img>
       </v-col>
     </v-row>
   </v-container>
 </template>
 
 <script>
-import { grafenoAPI } from '@/base_url/baseUrlNode.js'; 
+import { grafenoAPI } from '@/base_url/baseUrlNode.js';
 
 export default {
   name: "LoginPage",
@@ -81,13 +65,20 @@ export default {
         try {
           const response = await grafenoAPI.post('/user/login', payload);
 
-          const username = response.data.username;
-          localStorage.setItem('username', username);
+          console.log(response.data.consentStatus);
+          if (response.data.consentStatus !== true) {
+            
+            const username = response.data.username;
+            localStorage.setItem('username', username);
 
-          const id = response.data.id;
-          localStorage.setItem('id', id);
+            const id = response.data.id;
+            localStorage.setItem('id', id);
 
-          this.$router.push({ name: 'Home' });
+            this.$router.push({ name: 'Home' });
+          } else {
+            console.error("Termo de aceite não aceito");
+            alert('Termo de aceite não aceito! Para uso da  ');
+          }
         } catch (error) {
           console.error("Erro ao fazer login:", error);
           alert('Erro ao fazer login: ' + (error.response?.data?.message || 'Erro desconhecido'));
@@ -112,4 +103,3 @@ export default {
   object-fit: contain;
 }
 </style>
-

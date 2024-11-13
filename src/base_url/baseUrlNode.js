@@ -5,7 +5,7 @@ import axios from 'axios';
 const getBaseUrl = async () => {
   try {
     const response = await fetch('http://localhost:3000/alerts');
-    return response.ok ? 'http://localhost:3000' : 'https://ip4-recivables-production.up.railway.app';
+    return  'http://localhost:3000' ;
   } catch (error) {
     return 'https://ip4-recivables-production.up.railway.app';
   }
