@@ -19,14 +19,7 @@
         </v-list-item>
         <v-divider></v-divider>
 
-        <v-list-item link @click="navigateTo('contratos')" class="drawer-text">
-          <v-list-item-action>
-            <v-icon color="white">mdi-file-document</v-icon>
-          </v-list-item-action>
-          <v-list-item-content>
-            <v-list-item-title>CONTRATOS</v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
+        
 
         <v-list-item link @click="navigateTo('duplicatas')" class="drawer-text">
           <v-list-item-action>
@@ -55,10 +48,14 @@
     </v-navigation-drawer>
 
     <v-app-bar app color="green lighten-3" flat>
+      <v-container class="d-flex justify-center align-center">
+      <div class="spc-score">
       <v-toolbar-side-icon>
-        <v-icon>fas fa-tachometer-alt</v-icon>
+        <v-icon class="icon" large>mdi-speedometer</v-icon>
       </v-toolbar-side-icon>
       <v-toolbar-title> SPC Score </v-toolbar-title>
+    </div>
+  </v-container>
       <v-spacer></v-spacer>
     </v-app-bar>
 
@@ -248,5 +245,13 @@ export default {
   position: fixed;
   bottom: 20px;
   left: 20px;
+}
+.spc-score {
+  display: flex;
+  align-items: center;
+}
+.spc-score .icon {
+  margin-right: 4px;
+  font-size: 35px;
 }
 </style>

@@ -46,8 +46,6 @@
                 label="Eu aceito os termos e condições"
               ></v-checkbox>
 
-              <v-btn color="secondary" @click="showConsentPopup = true">Abrir Pop-up de Consentimento</v-btn>
-
               <v-btn
                 :disabled="!termsAccepted || !valid"
                 color="primary"
@@ -56,22 +54,30 @@
                 Cadastrar
               </v-btn>
             </v-form>
+
+            <p class="mt-4">
+              Já possui uma conta?
+              <a class="login-link" @click.prevent="$router.push({ name: 'Login' })">
+                Faça login
+              </a>
+            </p>
           </v-card-text>
         </v-card>
       </v-col>
     </v-row>
 
+
     <!-- Pop-up de Consentimento -->
     <v-dialog v-model="showConsentPopup" max-width="600px">
       <v-card>
         <v-card-title>
-          <span class="headline">Gerenciamento de Consentimento</span>
+          <span class="headline">Termo de Aceite do Consentimento</span>
         </v-card-title>
         <v-card-text>
           <p>
-            De acordo com a Lei Geral de Proteção de Dados (LGPD), você tem o
-            direito de revogar ou alterar seu consentimento sobre o uso de seus
-            dados pessoais.
+            De acordo com os nossos termos e política de privacidade. Seus dados
+            serão armazenados em nossa base para utilização da nossa aplicação.
+            Você poderá alterar as suas preferências posteriormente na guia de configurações.
           </p>
 
           <!-- Lista de políticas de consentimento -->
@@ -229,6 +235,11 @@ export default {
 .terms-link,
 .privacy-link {
   color: #3f51b5;
+  text-decoration: underline;
+}
+.login-link {
+  color: #3f51b5;
+  cursor: pointer;
   text-decoration: underline;
 }
 </style>
