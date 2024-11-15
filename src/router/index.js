@@ -7,6 +7,7 @@ import HomePage from '@/components/HomePage.vue';
 import ConsentSettings from '@/components/ConsentSettings.vue';
 import path from 'path';
 import FormDuplicatePage from '@/components/FormDuplicatePage.vue';
+import DashDataPreviewPage from '@/components/DashDataPreviewPage.vue';
 
 const routes = [
 
@@ -45,7 +46,12 @@ const routes = [
     path: '/duplicatas',
     name: 'Duplicatas',
     component: FormDuplicatePage,
-  }, 
+  },
+  {
+    path: '/data-previsao',
+    name: 'DashDataPreview',
+    component: DashDataPreviewPage,
+  },
   {
     path: '/:pathMatch(.*)*',  // Para rotas desconhecidas
     redirect: '/login',

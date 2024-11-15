@@ -21,6 +21,15 @@
           </v-list-item-content>
         </v-list-item>
 
+        <v-list-item link @click="navigateTo('data-previsao')" class="drawer-text">
+            <v-list-item-action>
+              <v-icon color="white">mdi-cached</v-icon>
+            </v-list-item-action>
+            <v-list-item-content>
+              <v-list-item-title>HISTÓRICO DE DUPLICATAS</v-list-item-title>
+            </v-list-item-content>
+        </v-list-item>
+
         <v-list-item link @click="navigateTo('config')" class="drawer-text">
           <v-list-item-action>
             <v-icon color="white">mdi-cog</v-icon>
