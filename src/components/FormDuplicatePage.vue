@@ -28,6 +28,15 @@
           </v-list-item-content>
         </v-list-item>
 
+        <v-list-item link @click="navigateTo('upload')" class="drawer-text">
+          <v-list-item-action>
+            <v-icon color="white">mdi-file-upload</v-icon>
+          </v-list-item-action>
+          <v-list-item-content>
+            <v-list-item-title>DOCUMENTOS</v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
+
         <v-list-item link @click="navigateTo('config')" class="drawer-text">
           <v-list-item-action>
             <v-icon color="white">mdi-cog</v-icon>
