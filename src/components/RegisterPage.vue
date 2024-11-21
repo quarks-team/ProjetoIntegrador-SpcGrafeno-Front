@@ -4,104 +4,73 @@
       <v-col cols="12" md="6">
         <v-card>
           <v-card-title>
-            <span class="headline">Cadastro</span>
+            <span class="headline">Cadastrar novo usuário</span>
           </v-card-title>
           <v-card-text>
-            <v-form v-model="valid" ref="form" lazy-validation>
-              <!-- Nome -->
+            <v-form ref="form" v-model="isFormValid">
               <v-text-field
                 v-model="name"
-                :rules="nameRules"
                 label="Nome"
                 required
+                :rules="[v => !!v || 'O nome é obrigatório']"
               ></v-text-field>
 
-              <!-- E-mail -->
               <v-text-field
                 v-model="email"
-                :rules="emailRules"
-                label="E-mail"
+                label="Email"
                 required
+                :rules="[v => !!v || 'O email é obrigatório', v => /.+@.+\..+/.test(v) || 'E-mail inválido']"
               ></v-text-field>
 
-              <!-- CPF ou CNPJ -->
-              <v-text-field
-                v-model="document"
-                :rules="documentRules"
-                label="CPF ou CNPJ"
-              ></v-text-field>
-
-              <!-- Senha -->
               <v-text-field
                 v-model="password"
-                :rules="passwordRules"
                 label="Senha"
                 type="password"
                 required
+                :rules="[v => !!v || 'A senha é obrigatória', v => v.length >= 6 || 'A senha deve ter no mínimo 6 caracteres']"
+              ></v-text-field>
+
+              <v-text-field
+                v-model="confirmPassword"
+                label="Confirme a Senha"
+                type="password"
+                required
+                :rules="[v => v === password || 'As senhas não coincidem']"
+              ></v-text-field>
+
+              <v-text-field
+                v-model="document"
+                label="CNPJ (opcional)"
+                :rules="[v => !v || /^[0-9]{14}$/.test(v) || 'CNPJ inválido']"
               ></v-text-field>
 
               <v-checkbox
                 v-model="termsAccepted"
-                :rules="termsRules"
-                label="Eu aceito os termos e condições"
+                :disabled="!acceptanceTerms"
+                label="Aceito os Termos e Condições"
+                :required
               ></v-checkbox>
 
-              <v-btn color="secondary" @click="showConsentPopup = true">Abrir Pop-up de Consentimento</v-btn>
-
-              <v-btn
-                :disabled="!termsAccepted || !valid"
-                color="primary"
-                @click="submit"
-              >
-                Cadastrar
-              </v-btn>
+              <p v-if="acceptanceTerms">
+                <strong>Versão {{ acceptanceTerms.version }}</strong>: {{ acceptanceTerms.description }}
+              </p>
             </v-form>
           </v-card-text>
+          <v-card-actions>
+            <v-btn color="primary" :disabled="!isFormValid || !termsAccepted" @click="submit">
+              Registrar
+            </v-btn>
+          </v-card-actions>
+            <p class="pergunta">
+              Já tem cadastro?
+            <router-link to="/login" class="ml-1">Faça login</router-link>.
+            </p>
         </v-card>
       </v-col>
     </v-row>
-
-    <!-- Pop-up de Consentimento -->
-    <v-dialog v-model="showConsentPopup" max-width="600px">
-      <v-card>
-        <v-card-title>
-          <span class="headline">Gerenciamento de Consentimento</span>
-        </v-card-title>
-        <v-card-text>
-          <p>
-            De acordo com a Lei Geral de Proteção de Dados (LGPD), você tem o
-            direito de revogar ou alterar seu consentimento sobre o uso de seus
-            dados pessoais.
-          </p>
-
-          <!-- Lista de políticas de consentimento -->
-          <v-list dense>
-            <v-list-item v-for="policy in policies" :key="policy.id">
-              <v-list-item-content>
-                <v-list-item-title>{{ policy.name }}</v-list-item-title>
-                <v-list-item-subtitle>{{ policy.description }}</v-list-item-subtitle>
-              </v-list-item-content>
-              <v-list-item-action>
-                <v-checkbox
-                  v-model="policy.status"
-                  :disabled="policy.isMandatory"
-                  :label="policy.isMandatory ? 'Obrigatório' : 'Aceito'"
-                ></v-checkbox>
-              </v-list-item-action>
-            </v-list-item>
-          </v-list>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn text color="blue darken-1" @click="closePopup">
-            Cancelar
-          </v-btn>
-          <v-btn color="primary" @click="saveConsent">Salvar</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
   </v-container>
 </template>
+
 
 <script>
 import { grafenoAPI } from '@/base_url/baseUrlNode';
@@ -110,106 +79,61 @@ export default {
   name: "RegisterPage",
   data() {
     return {
-      valid: false,
       name: "",
       email: "",
       password: "",
+      confirmPassword: "",
       document: "",
       termsAccepted: false,
-      showConsentPopup: false,
-      policies: [],
-      userId: null,
-      // Regras de validação
-      nameRules: [(v) => !!v || "Nome é obrigatório"],
-      emailRules: [
-        (v) => !!v || "E-mail é obrigatório",
-        (v) => /.+@.+\..+/.test(v) || "E-mail deve ser válido",
-      ],
-      passwordRules: [
-        (v) => !!v || "Senha é obrigatória",
-        (v) => v.length >= 6 || "A senha deve ter pelo menos 6 caracteres",
-      ],
-      documentRules: [
-        (v) => this.validateDocument(v) || "CPF ou CNPJ deve ser válido",
-      ],
-      termsRules: [(v) => !!v || "Você deve aceitar os termos e condições"],
+      isFormValid: false,
+      acceptanceTerms: null, // Para armazenar o termo ativo
     };
   },
+
   methods: {
+    async fetchAcceptanceTerms() {
+      try {
+        const response = await grafenoAPI.get("/acceptance-terms");
+        this.acceptanceTerms = response.data;
+      } catch (error) {
+        console.error("Erro ao buscar termos de aceite:", error);
+        alert("Não foi possível carregar os termos de aceite. Tente novamente mais tarde.");
+      }
+    },
     async submit() {
-  if (this.$refs.form.validate() && this.termsAccepted) {
-    try {
-      // Criação do usuário
-      const response = await grafenoAPI.post('/user', {
-        username: this.name,
-        email: this.email,
-        password: this.password,
-        cnpj: this.document || null,
-      });
+      if (this.$refs.form.validate() && this.termsAccepted && this.acceptanceTerms) {
+        try {
+          const payload = {
+            username: this.name,
+            email: this.email,
+            password: this.password,
+            cnpj: this.document || null,
+            consentStatus: this.termsAccepted,
+            consentDate: new Date().toISOString(),
+            acceptanceTerms: this.acceptanceTerms, // Vinculando o termo ativo
+          };
 
-      // Log da resposta para depuração
-      console.log("Usuário criado com sucesso:", response.data);
+          const response = await grafenoAPI.post("/user", payload);
 
-      // Verificação do ID do usuário
-      if (response.data && response.data.id) {
-            this.userId = response.data.id;
-            this.showConsentPopup = true;
-            await this.fetchPolicies();
+          const { token } = response.data;
+
+          if (token) {
+            localStorage.setItem("authToken", token);
+            alert("Cadastro realizado com sucesso!");
+            this.$router.push({ name: "/login" });
           } else {
-            throw new Error("ID do usuário não retornado.");
+            throw new Error("Token não retornado pelo servidor.");
           }
         } catch (error) {
-          alert('Erro ao criar o usuário: ' + error.response?.data?.message || error.message);
+          alert("Erro ao criar o usuário: " + (error.response?.data?.message || error.message));
         }
+      } else {
+        alert("Preencha todos os campos corretamente e aceite os termos.");
       }
     },
-
-    validateDocument(document) {
-      const sanitizedDocument = document.replace(/\D/g, '');
-      return sanitizedDocument.length === 11 || sanitizedDocument.length === 14;
-    },
-    async fetchPolicies() {
-  // Adiciona verificação para garantir que o userId não seja undefined
-  if (this.userId) {
-    try {
-      const response = await grafenoAPI.get(`/user-consent/${this.userId}`);
-      console.log("Políticas de consentimento buscadas:", response.data);
-      this.policies = response.data.map((policy) => ({
-        id: policy.policyId,
-        name: `Política ${policy.policyId}`,
-        description: `Descrição da política ${policy.policyId}`,
-        status: policy.isActive,
-        isMandatory: policy.isMandatory,
-      }));
-    } catch (error) {
-      console.error('Erro ao buscar políticas:', error.response?.data?.message || error.message);
-    }
-  } else {
-    console.error("User ID não definido. Não é possível buscar políticas.");
-  }
-},
-    async saveConsent() {
-      const consentData = {
-        userId: this.userId,
-        consents: this.policies.map((policy) => ({
-          id: policy.id,
-          status: policy.status,
-          isMandatory: policy.isMandatory,
-        })),
-      };
-
-      try {
-        await grafenoAPI.post('/user-consent/update', consentData);
-        alert('Consentimento salvo com sucesso!');
-        this.$router.push({ name: 'Login' });
-      } catch (error) {
-        console.error('Erro ao salvar consentimento:', error);
-      }
-    },
-    closePopup() {
-      this.showConsentPopup = false;
-      this.termsAccepted = false;
-    },
+  },
+  created() {
+    this.fetchAcceptanceTerms(); // Buscar o termo ativo ao carregar a página
   },
 };
 </script>
@@ -221,15 +145,17 @@ export default {
   background-position: center;
   min-height: 100vh;
 }
-
 .v-card {
   background-color: rgba(255, 255, 255, 0.8);
 }
-
-.terms-link,
-.privacy-link {
-  color: #3f51b5;
-  text-decoration: underline;
+.ml-1 {
+  margin-left: 6px;
+}
+.pergunta{
+  margin-left: 10px;
+}
+.headline{
+  margin-left: 20px;
 }
 </style>
 
