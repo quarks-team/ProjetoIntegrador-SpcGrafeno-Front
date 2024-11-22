@@ -65,19 +65,27 @@ export default {
         try {
           const response = await grafenoAPI.post('/user/login', payload);
 
-          console.log(response.data.consentStatus);
-          if (response.data.consentStatus !== true) {
-            
-            const username = response.data.username;
-            localStorage.setItem('username', username);
+          const { token, user } = response.data;
 
-            const id = response.data.id;
-            localStorage.setItem('id', id);
+          if (token) {
+            // Salvar o token no localStorage
+            localStorage.setItem('authToken', response.data.token);
 
-            this.$router.push({ name: 'Home' });
+            // Salvar detalhes do usuário no localStorage
+            localStorage.setItem('username', user.username);
+            localStorage.setItem('userId', user._id);
+            localStorage.setItem('consentStatus', user.consentStatus);
+            localStorage.setItem("userData", JSON.stringify(response.data.user));
+
+            // Verificar se o usuário aceitou os termos
+            if (!user.consentStatus) {
+              alert('Você ainda não aceitou os termos de uso. Atualize seu consentimento.');
+              this.$router.push({ name: 'ConsentSettings' }); // Redirecionar para a página de consentimento
+            } else {
+              this.$router.push({ name: 'Home' });
+            }
           } else {
-            console.error("Termo de aceite não aceito");
-            alert('Termo de aceite não aceito! Para uso da  ');
+            throw new Error("Token não retornado pelo servidor.");
           }
         } catch (error) {
           console.error("Erro ao fazer login:", error);

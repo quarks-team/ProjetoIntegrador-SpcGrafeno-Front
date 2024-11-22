@@ -48,7 +48,7 @@
                 v-model="termsAccepted"
                 :disabled="!acceptanceTerms"
                 label="Aceito os Termos e Condições"
-                :required
+                required
               ></v-checkbox>
 
               <p v-if="acceptanceTerms">
@@ -113,17 +113,10 @@ export default {
             acceptanceTerms: this.acceptanceTerms, // Vinculando o termo ativo
           };
 
-          const response = await grafenoAPI.post("/user", payload);
+          await grafenoAPI.post("/user", payload);
 
-          const { token } = response.data;
-
-          if (token) {
-            localStorage.setItem("authToken", token);
             alert("Cadastro realizado com sucesso!");
             this.$router.push({ name: "/login" });
-          } else {
-            throw new Error("Token não retornado pelo servidor.");
-          }
         } catch (error) {
           alert("Erro ao criar o usuário: " + (error.response?.data?.message || error.message));
         }
