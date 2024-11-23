@@ -79,27 +79,29 @@ export default {
   setup() {
     const drawer = ref(true);
     const username = ref(localStorage.getItem("username"));
-    const chartData = ref({ history: [], forecast: [] }); // Dados separados
+    const chartData = ref({ history: [], forecast: [] });
 
     const navigateTo = (page) => {
-      router.push(`/${page}`);
+      console.log(`Navegando para: ${page}`);
     };
 
     // Função para carregar os dados do backend
     const loadDataFromAPI = async () => {
       try {
         const response = await axios.get("http://localhost:3000/");
+        const backendData = response.data.active;
+
         chartData.value = {
-          history: response.data.history.map((item) => ({
-            date: item.date,
-            value: item.quantity,
+          history: Object.keys(backendData.ds).map((key) => ({
+            date: backendData.ds[key],
+            value: backendData.trend[key],
           })),
-          forecast: response.data.forecast.map((item) => ({
-            date: item.date,
-            value: item.quantity,
+          forecast: Object.keys(backendData.ds).map((key) => ({
+            date: backendData.ds[key],
+            value: backendData.yhat[key],
           })),
         };
-        renderChart(); // Renderiza o gráfico
+        renderChart();
       } catch (error) {
         console.error("Erro ao carregar os dados do backend:", error);
       }
@@ -111,7 +113,7 @@ export default {
         x: chartData.value.history.map((d) => d.date),
         y: chartData.value.history.map((d) => d.value),
         type: "scatter",
-        mode: "lines", // Apenas linhas
+        mode: "lines",
         line: { color: "green", width: 2 },
         name: "Histórico",
       };
@@ -120,8 +122,8 @@ export default {
         x: chartData.value.forecast.map((d) => d.date),
         y: chartData.value.forecast.map((d) => d.value),
         type: "scatter",
-        mode: "lines", // Apenas linhas
-        line: { color: "blue", dash: "dot", width: 2 }, // Linha tracejada
+        mode: "lines",
+        line: { color: "blue", dash: "dot", width: 2 },
         name: "Previsão",
       };
 
@@ -129,7 +131,7 @@ export default {
         title: "Histórico e Previsão de Duplicatas",
         xaxis: { title: "Data" },
         yaxis: { title: "Quantidade" },
-        showlegend: true, // Mostra legenda
+        showlegend: true,
       };
 
       Plotly.newPlot("forecast-chart", [historyTrace, forecastTrace], layout);
