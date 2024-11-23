@@ -9,10 +9,21 @@
           </v-card-title>
           <v-card-text>
             <v-form ref="form" v-model="valid" lazy-validation>
-              <v-text-field v-model="email" label="E-mail" :rules="[emailRules]" required></v-text-field>
-              <v-text-field v-model="password" label="Senha" :type="showPassword ? 'text' : 'password'"
-                :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'" @click:append="showPassword = !showPassword"
-                :rules="[passwordRules]" required></v-text-field>
+              <v-text-field 
+              v-model="email" 
+              label="E-mail" 
+              :rules="[emailRules]" 
+              required
+              ></v-text-field>
+
+              <v-text-field 
+              v-model="password" 
+              label="Senha" 
+              :type="showPassword ? 'text' : 'password'"
+              :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'" @click:append="showPassword = !showPassword"
+              :rules="[passwordRules]" required
+              ></v-text-field>
+
               <v-btn color="primary" @click="login">Login</v-btn>
             </v-form>
 
@@ -30,6 +41,24 @@
         <v-img src="/little_pig.jpg" alt="Little Pig" class="right-image" contain></v-img>
       </v-col>
     </v-row>
+
+    <!-- Diálogo de Aceite dos Termos -->
+    <v-dialog v-model="showTermsDialog" max-width="600px">
+      <v-card>
+        <v-card-title>
+          <span class="headline">Atualização dos Termos de Uso</span>
+        </v-card-title>
+        <v-card-text>
+          <p>
+            Os termos de uso da plataforma foram atualizados. Por favor, leia e aceite os novos termos para continuar usando a plataforma.
+          </p>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="primary" @click="acceptTerms">Aceitar</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -44,6 +73,7 @@ export default {
       email: "",
       password: "",
       showPassword: false,
+      showTermsDialog: false,
       emailRules: [
         (v) => !!v || "E-mail é obrigatório",
         (v) => /.+@.+\..+/.test(v) || "E-mail deve ser válido",
@@ -79,8 +109,7 @@ export default {
 
             // Verificar se o usuário aceitou os termos
             if (!user.consentStatus) {
-              alert('Você ainda não aceitou os termos de uso. Atualize seu consentimento.');
-              this.$router.push({ name: 'ConsentSettings' }); // Redirecionar para a página de consentimento
+              this.showTermsDialog = true;
             } else {
               this.$router.push({ name: 'Home' });
             }

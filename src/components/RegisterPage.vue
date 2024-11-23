@@ -1,132 +1,182 @@
 <template>
-  <v-container class="fill-height background-image" fluid>
-    <v-row class="d-flex justify-center align-center" style="min-height: 100vh;">
+  <v-container class="fill-height" fluid>
+    <v-row>
+      <!-- Coluna Esquerda (Formulário de Login) -->
       <v-col cols="12" md="6">
         <v-card>
           <v-card-title>
-            <span class="headline">Cadastrar novo usuário</span>
+            <span class="headline">Login</span>
           </v-card-title>
           <v-card-text>
-            <v-form ref="form" v-model="isFormValid">
-              <v-text-field
-                v-model="name"
-                label="Nome"
+            <v-form ref="form" v-model="valid" lazy-validation>
+              <v-text-field 
+                v-model="email" 
+                label="E-mail" 
+                :rules="[emailRules]" 
                 required
-                :rules="[v => !!v || 'O nome é obrigatório']"
               ></v-text-field>
 
-              <v-text-field
-                v-model="email"
-                label="Email"
+              <v-text-field 
+                v-model="password" 
+                label="Senha" 
+                :type="showPassword ? 'text' : 'password'"
+                :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'" 
+                @click:append="showPassword = !showPassword"
+                :rules="[passwordRules]" 
                 required
-                :rules="[v => !!v || 'O email é obrigatório', v => /.+@.+\..+/.test(v) || 'E-mail inválido']"
               ></v-text-field>
-
-              <v-text-field
-                v-model="password"
-                label="Senha"
-                type="password"
-                required
-                :rules="[v => !!v || 'A senha é obrigatória', v => v.length >= 6 || 'A senha deve ter no mínimo 6 caracteres']"
-              ></v-text-field>
-
-              <v-text-field
-                v-model="confirmPassword"
-                label="Confirme a Senha"
-                type="password"
-                required
-                :rules="[v => v === password || 'As senhas não coincidem']"
-              ></v-text-field>
-
-              <v-text-field
-                v-model="document"
-                label="CNPJ (opcional)"
-                :rules="[v => !v || /^[0-9]{14}$/.test(v) || 'CNPJ inválido']"
-              ></v-text-field>
-
-              <v-checkbox
-                v-model="termsAccepted"
-                :disabled="!acceptanceTerms"
-                label="Aceito os Termos e Condições"
-                required
-              ></v-checkbox>
-
-              <p v-if="acceptanceTerms">
-                <strong>Versão {{ acceptanceTerms.version }}</strong>: {{ acceptanceTerms.description }}
-              </p>
+              
+              <v-btn color="primary" @click="login">Login</v-btn>
             </v-form>
+
+            <!-- Link para página de cadastro -->
+            <div class="mt-4">
+              <span>Não tem uma conta? </span>
+              <router-link to="/register" color="primary">Cadastre-se</router-link>
+            </div>
           </v-card-text>
-          <v-card-actions>
-            <v-btn color="primary" :disabled="!isFormValid || !termsAccepted" @click="submit">
-              Registrar
-            </v-btn>
-          </v-card-actions>
-            <p class="pergunta">
-              Já tem cadastro?
-            <router-link to="/login" class="ml-1">Faça login</router-link>.
-            </p>
         </v-card>
       </v-col>
+
+      <!-- Coluna Direita (Imagem) -->
+      <v-col cols="12" md="6">
+        <v-img src="/little_pig.jpg" alt="Little Pig" class="right-image" contain></v-img>
+      </v-col>
     </v-row>
+
+        <!-- Diálogo de Aceite dos Termos -->
+        <v-dialog v-model="showTermsDialog" max-width="600px">
+      <v-card>
+        <v-card-title>
+          <span class="headline">Atualização dos Termos de Uso</span>
+        </v-card-title>
+        <v-card-text>
+          <p>{{ termsDescription }}</p>
+          <v-list>
+            <v-list-item v-for="(term, index) in terms" :key="index">
+              <v-list-item-content>
+                <v-list-item-title>{{ term.name }}</v-list-item-title>
+                <v-list-item-subtitle>
+                  {{ term.description }} - 
+                  <strong>{{ term.isMandatory ? 'Obrigatório' : 'Opcional' }}</strong>
+                </v-list-item-subtitle>
+              </v-list-item-content>
+            </v-list-item>
+          </v-list>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="primary" @click="acceptTerms">Aceitar</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
-
 <script>
-import { grafenoAPI } from '@/base_url/baseUrlNode';
+import { grafenoAPI } from '@/base_url/baseUrlNode.js';
 
 export default {
-  name: "RegisterPage",
+  name: "LoginPage",
   data() {
     return {
-      name: "",
+      valid: false,
       email: "",
       password: "",
-      confirmPassword: "",
-      document: "",
-      termsAccepted: false,
-      isFormValid: false,
-      acceptanceTerms: null, // Para armazenar o termo ativo
+      showPassword: false,
+      showTermsDialog: false, // Controle do diálogo
+      terms: [], // Lista de termos recuperados do backend
+      emailRules: [
+        (v) => !!v || "E-mail é obrigatório",
+        (v) => /.+@.+\..+/.test(v) || "E-mail deve ser válido",
+      ],
+      passwordRules: [
+        (v) => !!v || "Senha é obrigatória",
+        (v) => v.length >= 6 || "A senha deve ter pelo menos 6 caracteres",
+      ],
     };
   },
-
   methods: {
-    async fetchAcceptanceTerms() {
-      try {
-        const response = await grafenoAPI.get("/acceptance-terms");
-        this.acceptanceTerms = response.data;
-      } catch (error) {
-        console.error("Erro ao buscar termos de aceite:", error);
-        alert("Não foi possível carregar os termos de aceite. Tente novamente mais tarde.");
-      }
-    },
-    async submit() {
-      if (this.$refs.form.validate() && this.termsAccepted && this.acceptanceTerms) {
+    async login() {
+      if (this.$refs.form.validate()) {
+        const payload = {
+          email: this.email,
+          password: this.password,
+        };
+
         try {
-          const payload = {
-            username: this.name,
-            email: this.email,
-            password: this.password,
-            cnpj: this.document || null,
-            consentStatus: this.termsAccepted,
-            consentDate: new Date().toISOString(),
-            acceptanceTerms: this.acceptanceTerms, // Vinculando o termo ativo
-          };
+          const response = await grafenoAPI.post('/user/login', payload);
 
-          await grafenoAPI.post("/user", payload);
+          const { token, user } = response.data;
 
-            alert("Cadastro realizado com sucesso!");
-            this.$router.push({ name: "/login" });
+          if (token) {
+            // Salvar o token no localStorage
+            localStorage.setItem('authToken', response.data.token);
+
+            // Salvar detalhes do usuário no localStorage
+            localStorage.setItem('username', user.username);
+            localStorage.setItem('userId', user._id);
+            localStorage.setItem('consentStatus', user.consentStatus);
+            localStorage.setItem("userData", JSON.stringify(response.data.user));
+
+            // Verificar se o usuário aceitou os termos
+            if (!user.consentStatus) {
+              await this.loadTerms(); // Carregar termos do backend
+              this.showTermsDialog = true; // Mostrar diálogo de aceite
+            } else {
+              this.$router.push({ name: 'Home' });
+            }
+          } else {
+            throw new Error("Token não retornado pelo servidor.");
+          }
         } catch (error) {
-          alert("Erro ao criar o usuário: " + (error.response?.data?.message || error.message));
+          console.error("Erro ao fazer login:", error);
+          alert('Erro ao fazer login: ' + (error.response?.data?.message || 'Erro desconhecido'));
         }
-      } else {
-        alert("Preencha todos os campos corretamente e aceite os termos.");
       }
     },
-  },
-  created() {
-    this.fetchAcceptanceTerms(); // Buscar o termo ativo ao carregar a página
+    async loadTerms() {
+      try {
+        const response = await grafenoAPI.get('/acceptance-terms');
+        const termsData = response.data;
+
+        // Mapear os itens dos termos para exibição
+        this.terms = termsData.items.map(item => ({
+          name: item.name,
+          description: item.description,
+          isMandatory: item.isMandatory,
+          tag: item.tag,
+        }));
+      } catch (error) {
+        console.error("Erro ao carregar termos:", error);
+        alert("Erro ao carregar os termos. Tente novamente.");
+      }
+    },
+    async acceptTerms() {
+      try {
+        const userId = localStorage.getItem("userId");
+        const payload = {
+          userId,
+          consents: this.terms.map(term => ({
+            id: term.id,
+            status: true,
+            isMandatory: term.isMandatory,
+          })),
+        };
+
+        await grafenoAPI.post('/user', payload);
+
+        // Atualiza o consentStatus no localStorage
+        localStorage.setItem('consentStatus', true);
+
+        // Fecha o diálogo e redireciona o usuário
+        this.showTermsDialog = false;
+        this.$router.push({ name: 'Home' });
+      } catch (error) {
+        console.error("Erro ao aceitar os termos:", error);
+        alert("Erro ao aceitar os termos. Tente novamente.");
+      }
+    },
   },
 };
 </script>
