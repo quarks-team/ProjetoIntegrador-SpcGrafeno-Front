@@ -1,11 +1,6 @@
 <template>
-    <v-app>
-    <v-navigation-drawer
-      app
-      v-model="drawer"
-      permanent
-      class="drawer-background"
-    >
+  <v-app>
+    <v-navigation-drawer app v-model="drawer" permanent class="drawer-background">
       <v-list>
         <v-list-item>
           <v-btn icon @click="navigateTo('home')">
@@ -54,50 +49,47 @@
       </v-list>
     </v-navigation-drawer>
 
+    <!-- Barra de Navegação -->
     <v-app-bar app color="green lighten-3" flat>
       <v-container class="d-flex justify-center align-center">
-      <div class="spc-score">
-      <v-toolbar-side-icon>
-        <v-icon class="icon" large>mdi-file-upload</v-icon>
-      </v-toolbar-side-icon>
-      <v-toolbar-title> Documentos </v-toolbar-title>
-    </div>
-  </v-container>
+        <div class="spc-score">
+          <v-toolbar-side-icon>
+            <v-icon class="icon" large>mdi-file-upload</v-icon>
+          </v-toolbar-side-icon>
+          <v-toolbar-title> Documentos para Histórico de Duplicatas </v-toolbar-title>
+        </div>
+      </v-container>
       <v-spacer></v-spacer>
     </v-app-bar>
 
     <v-main>
-    <v-container class="background-image" fluid>
-      <v-card>
-        <v-card-title>Upload de Arquivo CSV</v-card-title>
-        <v-card-text>
-          <v-file-input
-            label="Selecione um arquivo .csv"
-            accept=".csv"
-            v-model="file"
-            @change="validateFile"
-          />
-          <v-btn :disabled="!file" color="primary" @click="uploadFile">
-            Iniciar Upload
-          </v-btn>
-          <v-progress-linear
-            v-if="isUploading"
-            :value="uploadProgress"
-            height="6"
-            color="blue"
-          ></v-progress-linear>
-          <v-alert v-if="message" :type="alertType">{{ message }}</v-alert>
-        </v-card-text>
-      </v-card>
-    </v-container>
+      <!-- Seção de Upload de Arquivo -->
+      <v-container class="background-image" fluid>
+        <v-card>
+          <v-card-title>Upload de Arquivo CSV</v-card-title>
+          <v-card-text>
+            <v-file-input label="Selecione um arquivo .csv" accept=".csv" v-model="file" @change="validateFile" />
+            <v-btn :disabled="!file" color="primary" @click="uploadFile">
+              Iniciar Upload
+            </v-btn>
+            <v-progress-linear v-if="isUploading" :value="uploadProgress" height="6" color="blue"></v-progress-linear>
+            <v-alert v-if="message" :type="alertType">{{ message }}</v-alert>
+          </v-card-text>
+        </v-card>
+        <div id="forecast-chart" style="height: 400px;"></div>
+      </v-container>
     </v-main>
-    </v-app>
-  </template>
-  
-  <script>
-import { ref } from "vue";
+
+  </v-app>
+
+</template>
+
+<script>
+import { ref, onMounted  } from "vue";
 import axios from "axios";
 import { useRouter } from "vue-router";
+import { pythonAPI } from '@/base_url/baseUrlNode';
+import Plotly from "plotly.js-dist";
 
 export default {
   setup() {
@@ -109,6 +101,9 @@ export default {
     const username = ref(localStorage.getItem("username"));
     const router = useRouter();
     const drawer = ref(true);
+    const payloadPrevisao = ref({});
+
+    const chartData = ref({ history: [], forecast: [] });
 
     const validateFile = () => {
       const validTypes = ["text/csv"];
@@ -124,7 +119,13 @@ export default {
     const uploadFile = async () => {
       if (!file.value) return;
 
+      const data = {
+        duplicate_state: "finished",
+        day: 30,
+      };
+
       const formData = new FormData();
+      formData.append("data", JSON.stringify(data));
       formData.append("file", file.value);
 
       isUploading.value = true;
@@ -132,7 +133,7 @@ export default {
       alertType.value = "info";
 
       try {
-        const response = await axios.post("/api/upload", formData, {
+        const response = await axios.post("http://localhost:8000/generate_model/", formData, {
           headers: { "Content-Type": "multipart/form-data" },
           onUploadProgress: (progressEvent) => {
             uploadProgress.value = Math.round(
@@ -140,11 +141,19 @@ export default {
             );
           },
         });
+
+        // Atualize o valor de payloadPrevisao com .value
+        payloadPrevisao.value = response.data; // Atribuindo corretamente ao .value
+
         message.value = response.data.message || "Processamento concluído!";
         alertType.value = "success";
+
+        // Após o upload bem-sucedido, carregue os dados do backend para o gráfico
+        loadDataFromAPI();
+
       } catch (error) {
-        message.value =
-          error.response?.data?.message || "Erro no upload.";
+        console.log(error);
+        message.value = error.response?.data?.message || "Erro no upload.";
         alertType.value = "error";
       } finally {
         isUploading.value = false;
@@ -152,71 +161,120 @@ export default {
       }
     };
 
-    const logout = () => {
-      localStorage.removeItem("username");
-      router.push("/login");
+    const loadDataFromAPI = () => {
+      chartData.value = {
+        history: Object.keys(payloadPrevisao.value.ds).map((key) => ({
+          date: payloadPrevisao.value.ds[key],
+          value: payloadPrevisao.value.yhat[key],
+        })),
+        forecast: Object.keys(payloadPrevisao.value.ds).map((key) => ({
+          date: payloadPrevisao.value.ds[key],
+          value: payloadPrevisao.value.yhat[key],
+        })),
+      };
+      renderChart();
     };
 
+    const renderChart = () => {
+      const historyTrace = {
+        x: chartData.value.history.map((d) => d.date),
+        y: chartData.value.history.map((d) => d.value),
+        type: "scatter",
+        mode: "lines",
+        line: { color: "green", width: 2 },
+        name: "Histórico",
+      };
+
+      const forecastTrace = {
+        x: chartData.value.forecast.map((d) => d.date),
+        y: chartData.value.forecast.map((d) => d.value),
+        type: "scatter",
+        mode: "lines",
+        line: { color: "blue", dash: "dot", width: 2 },
+        name: "Previsão",
+      };
+
+      const layout = {
+        title: "Histórico e Previsão de Duplicatas",
+        xaxis: { title: "Data" },
+        yaxis: { title: "Quantidade" },
+        showlegend: true,
+      };
+
+      Plotly.newPlot("forecast-chart", [historyTrace, forecastTrace], layout);
+    };
+
+    onMounted(() => {
+      // Inicializa o gráfico vazio
+      renderChart();
+    });
     const navigateTo = (page) => {
       router.push(`/${page}`);
     };
 
     return {
-      drawer,
+      navigateTo,
       file,
       isUploading,
       uploadProgress,
       message,
       alertType,
-      username,
+      chartData,
       validateFile,
       uploadFile,
-      logout,
-      navigateTo,
+      drawer: true,
     };
   },
 };
 </script>
 
-  
+
 <style scoped>
 .v-file-input {
-   margin-bottom: 16px;
- }
+  margin-bottom: 16px;
+}
+
 .v-btn {
   margin-top: 8px;
- }
- .v-navigation-drawer {
+}
+
+.v-navigation-drawer {
   width: 200px;
   background-color: #1679AB;
 }
+
 .v-card {
   padding: 64px;
- }
- .drawer-text {
+}
+
+.drawer-text {
   color: white !important;
 }
+
 .background-image {
   background-image: url('@/assets/abstract.jpg');
   background-size: cover;
   background-position: center;
   min-height: 100vh;
- }
+}
+
 .min-height {
   min-height: 100vh;
 }
+
 .logout-icon {
   position: fixed;
   bottom: 20px;
   left: 20px;
 }
+
 .spc-score {
   display: flex;
   align-items: center;
 }
+
 .spc-score .icon {
   margin-right: 4px;
   font-size: 35px;
 }
 </style>
-  

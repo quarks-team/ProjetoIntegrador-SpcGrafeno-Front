@@ -56,7 +56,6 @@
           <v-icon>mdi-logout</v-icon>
         </v-btn>
       </v-list>
-
     </v-navigation-drawer>
 
     <v-app-bar app color="green lighten-3" flat>

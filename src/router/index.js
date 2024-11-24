@@ -7,7 +7,6 @@ import HomePage from '@/components/HomePage.vue';
 import ConsentSettings from '@/components/ConsentSettings.vue';
 import FormDuplicatePage from '@/components/FormDuplicatePage.vue';
 import UploadCsvPage from '@/components/UploadCsvPage.vue';
-import DashDataPreviewPage from '@/components/DashDataPreviewPage.vue';
 
 const routes = [
 
@@ -51,12 +50,6 @@ const routes = [
     path: '/upload',
     name: 'UploadCsv',
     component: UploadCsvPage,
-  },
-  },
-  {
-    path: '/data-previsao',
-    name: 'DashDataPreview',
-    component: DashDataPreviewPage,
   },
   {
     path: '/:pathMatch(.*)*',  // Para rotas desconhecidas

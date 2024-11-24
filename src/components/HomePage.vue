@@ -105,7 +105,7 @@
                 <v-progress-linear :value="getProgressValue(endorserScore?.successful_transactions)" :height="20"
                   color="green" class="mb-2">
                   Concluída {{ endorserScore?.successful_transactions !== null ? endorserScore.successful_transactions :
-                  0 }}
+                    0 }}
                 </v-progress-linear>
 
                 <!-- Barra de Progresso Linear para Cancelado -->
