@@ -8,7 +8,7 @@
     >
       <v-list>
         <v-list-item>
-          <v-btn icon @click="goHome">
+          <v-btn icon @click="navigateTo('home')">
             <v-icon>mdi-home</v-icon>
           </v-btn>
           <v-list-item-content>
@@ -16,15 +16,6 @@
           </v-list-item-content>
         </v-list-item>
         <v-divider></v-divider>
-
-        <v-list-item link @click="navigateTo('contratos')" class="drawer-text">
-          <v-list-item-action>
-            <v-icon color="white">mdi-file-document</v-icon>
-          </v-list-item-action>
-          <v-list-item-content>
-            <v-list-item-title>CONTRATOS</v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
 
         <router-link to="/duplicatas" class="drawer-text" exact>
           <v-list-item link>
@@ -36,6 +27,15 @@
             </v-list-item-content>
           </v-list-item>
         </router-link>
+
+        <v-list-item link @click="navigateTo('upload')" class="drawer-text">
+          <v-list-item-action>
+            <v-icon color="white">mdi-file-upload</v-icon>
+          </v-list-item-action>
+          <v-list-item-content>
+            <v-list-item-title>DOCUMENTOS</v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
 
         <v-list-item link @click="navigateTo('config')" class="drawer-text">
           <v-list-item-action>
@@ -55,10 +55,14 @@
     </v-navigation-drawer>
 
     <v-app-bar app color="green lighten-3" flat>
+      <v-container class="d-flex justify-center align-center">
+      <div class="spc-score">
       <v-toolbar-side-icon>
-        <v-icon>fas fa-tachometer-alt</v-icon>
+        <v-icon class="icon" large>mdi-calendar-arrow-right</v-icon>
       </v-toolbar-side-icon>
-      <v-toolbar-title>Predição de Duplicatas</v-toolbar-title>
+      <v-toolbar-title> Predição de Duplicatas </v-toolbar-title>
+    </div>
+  </v-container>
       <v-spacer></v-spacer>
     </v-app-bar>
 

@@ -49,9 +49,14 @@
           <span class="headline">Atualização dos Termos de Uso</span>
         </v-card-title>
         <v-card-text>
-          <p>
-            Os termos de uso da plataforma foram atualizados. Por favor, leia e aceite os novos termos para continuar usando a plataforma.
-          </p>
+          <v-list>
+            <v-list-item v-for="term in terms" :key="term.id">
+              <v-list-item-content>
+                <v-list-item-title>{{ term.title }}</v-list-item-title>
+                <v-list-item-subtitle>{{ term.description }}</v-list-item-subtitle>
+              </v-list-item-content>
+            </v-list-item>
+          </v-list>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
@@ -74,6 +79,7 @@ export default {
       password: "",
       showPassword: false,
       showTermsDialog: false,
+      terms: null,
       emailRules: [
         (v) => !!v || "E-mail é obrigatório",
         (v) => /.+@.+\..+/.test(v) || "E-mail deve ser válido",
@@ -95,35 +101,94 @@ export default {
         try {
           const response = await grafenoAPI.post('/user/login', payload);
 
-          const { token, user } = response.data;
+          const { user } = response.data;
 
-          if (token) {
-            // Salvar o token no localStorage
+            // Caso os termos não tenham sido aceitos
+            if (user.consentStatus === false) {
+              this.showTermsDialog = true;
+              return;
+            }
+
+            // Se o token não for retornado
+            const { token } = response.data;
+            if (!token) {
+              throw new Error("Token não retornado pelo servidor.");
+            }
+
+            // Salvar os dados no localStorage
             localStorage.setItem('authToken', response.data.token);
-
-            // Salvar detalhes do usuário no localStorage
             localStorage.setItem('username', user.username);
             localStorage.setItem('userId', user._id);
             localStorage.setItem('consentStatus', user.consentStatus);
             localStorage.setItem("userData", JSON.stringify(response.data.user));
 
-            // Verificar se o usuário aceitou os termos
-            if (!user.consentStatus) {
-              this.showTermsDialog = true;
-            } else {
-              this.$router.push({ name: 'Home' });
+            // Redirecionar para a página inicial
+            this.$router.push({ name: 'Home' });
+
+            } catch (error) {
+              // Verificar se o erro é relacionado aos termos
+              if (error.response?.data?.error === 'TERMS_NOT_ACCEPTED') {
+                this.showTermsDialog = true;
+              } else {
+                console.error("Erro ao fazer login:", error.response?.data || error.message);
+                alert('Erro ao fazer login: ' + (error.response?.data?.message || 'Erro desconhecido'));
+              }
             }
-          } else {
-            throw new Error("Token não retornado pelo servidor.");
-          }
-        } catch (error) {
-          console.error("Erro ao fazer login:", error);
-          alert('Erro ao fazer login: ' + (error.response?.data?.message || 'Erro desconhecido'));
-        }
-      }
-    },
-  },
-};
+            }
+          },
+          async fetchTerms() {
+            try {
+              const response = await grafenoAPI.get("/acceptance-terms");
+              this.terms = response.data;
+            } catch (error) {
+              console.error("Erro ao buscar os termos de uso:", error);
+              alert("Erro ao carregar os termos de uso.");
+            }
+          },
+          async acceptTerms() {
+            try {
+              const userId = localStorage.getItem('userId');
+              if (!userId) {
+                throw new Error("ID do usuário não encontrado no localStorage.");
+              }
+              const consentItem = this.terms.items.find(
+                (item) => item.tag === "DATA-USAGE"
+              );
+
+              if (!consentItem) {
+                throw new Error("Item de consentimento obrigatório não encontrado.");
+              }
+              const payload = {
+                userId: parseInt(userId),
+                consents: [
+                  {
+                    id: consentItem._id,
+                    status: true,
+                    isMandatory: consentItem.isMandatory,
+                  },
+                ],
+              };
+
+              const response = await grafenoAPI.post("/user", payload);
+
+              if (response.status === 200) {
+                alert("Termos aceitos com sucesso!");
+                localStorage.setItem("consentStatus", true);
+                this.showTermsDialog = false;
+                this.$router.push({ name: "Home" });
+              } else {
+                throw new Error("Erro ao salvar o consentimento.");
+              }
+            } catch (error) {
+              console.error("Erro ao aceitar os termos:", error);
+              alert(
+                "Erro ao aceitar os termos: " +
+                  (error.response?.data?.message || "Erro desconhecido")
+              );
+            }
+          },
+        },
+      };
 </script>
 
 <style scoped>

@@ -5,7 +5,6 @@ import TermsPage from '@/components/TermsPage.vue';
 import PrivacyPolicyPage from '@/components/PrivacyPolicyPage.vue';
 import HomePage from '@/components/HomePage.vue';
 import ConsentSettings from '@/components/ConsentSettings.vue';
-import path from 'path';
 import FormDuplicatePage from '@/components/FormDuplicatePage.vue';
 
 const routes = [
