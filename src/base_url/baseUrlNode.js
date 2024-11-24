@@ -1,13 +1,12 @@
-
 import axios from 'axios';
 
 // Função para verificar a URL base
 const getBaseUrl = async () => {
   try {
     const response = await fetch('http://localhost:3000/alerts');
-    return 'http://localhost:3000';//response.ok ? 'http://localhost:3000' : 'https://ip4-recivables-production.up.railway.app';
+    return response.ok ? 'http://localhost:3000' : 'https://ip4-recivables-production.up.railway.app';
   } catch (error) {
-    return 'http://localhost:3000'; //'https://ip4-recivables-production.up.railway.app';
+    return 'https://ip4-recivables-production.up.railway.app';
   }
 };
 
@@ -21,9 +20,16 @@ const grafenoAPI = axios.create({
   },
 });
 
+// Criação de uma instância do Axios com uma URL padrão para o back python
+const pythonAPI = axios.create({
+  baseURL: 'http://localhost:8000',
+  timeout: 50000,
+});
+
 // Atualiza a baseURL de forma assíncrona
 getBaseUrl().then((baseUrl) => {
   grafenoAPI.defaults.baseURL = baseUrl;
 });
 
 export { grafenoAPI };
+export { pythonAPI };

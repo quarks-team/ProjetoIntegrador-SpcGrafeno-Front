@@ -1,11 +1,6 @@
 <template>
   <v-app>
-    <v-navigation-drawer
-      app
-      v-model="drawer"
-      permanent
-      class="drawer-background"
-    >
+    <v-navigation-drawer app v-model="drawer" permanent class="drawer-background">
       <v-list>
         <v-list-item>
           <v-btn icon @click="navigateTo('home')">
@@ -25,6 +20,15 @@
           </v-list-item-action>
           <v-list-item-content>
             <v-list-item-title>DUPLICATAS</v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
+
+        <v-list-item link @click="navigateTo('data-previsao')" class="drawer-text">
+          <v-list-item-action>
+            <v-icon color="white">mdi-cached</v-icon>
+          </v-list-item-action>
+          <v-list-item-content>
+            <v-list-item-title>HISTÓRICO DE DUPLICATAS</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
 
@@ -56,13 +60,13 @@
 
     <v-app-bar app color="green lighten-3" flat>
       <v-container class="d-flex justify-center align-center">
-      <div class="spc-score">
-      <v-toolbar-side-icon>
-        <v-icon class="icon" large>mdi-calendar-arrow-right</v-icon>
-      </v-toolbar-side-icon>
-      <v-toolbar-title> Predição de Duplicatas </v-toolbar-title>
-    </div>
-  </v-container>
+        <div class="spc-score">
+          <v-toolbar-side-icon>
+            <v-icon class="icon" large>mdi-calendar-arrow-right</v-icon>
+          </v-toolbar-side-icon>
+          <v-toolbar-title> Predição de Duplicatas </v-toolbar-title>
+        </div>
+      </v-container>
       <v-spacer></v-spacer>
     </v-app-bar>
 
@@ -81,15 +85,8 @@
                   <div class="form-row">
                     <br>
                     <div class="form-group col-md-6">
-                      <label for="createdAt" class="form-label"
-                        >Data de Criação:</label
-                      >
-                      <input
-                        type="date"
-                        v-model="duplicata.createdAt"
-                        class="form-control"
-                        required
-                      />
+                      <label for="createdAt" class="form-label">Data de Criação:</label>
+                      <input type="date" v-model="duplicata.createdAt" class="form-control" required />
                     </div>
                     <br>
                   </div>
@@ -97,58 +94,28 @@
                   <div class="form-row">
                     <br>
                     <div class="form-group col-md-6">
-                      <label for="dueDate" class="form-label"
-                        >Data de Vencimento:</label
-                      >
-                      <input
-                        type="date"
-                        v-model="duplicata.dueDate"
-                        class="form-control"
-                        required
-                      />
+                      <label for="dueDate" class="form-label">Data de Vencimento:</label>
+                      <input type="date" v-model="duplicata.dueDate" class="form-control" required />
                     </div>
                     <br>
                   </div>
 
-                  <v-select
-                    v-model="duplicata.segmento"
-                    :items="segmentos"
-                    label="Segmento"
-                    :rules="[rules.required]"
-                    required
-                  ></v-select>
+                  <v-select v-model="duplicata.segmento" :items="segmentos" label="Segmento" :rules="[rules.required]"
+                    required></v-select>
 
-                  <v-select
-                    v-model="duplicata.areasDeAtuacao"
-                    :items="areas"
-                    label="Área de Atuação"
-                    :rules="[rules.required]"
-                    multiple
-                    required
-                  ></v-select>
+                  <v-select v-model="duplicata.areasDeAtuacao" :items="areas" label="Área de Atuação"
+                    :rules="[rules.required]" multiple required></v-select>
 
-                  <v-select
-                    v-model="duplicata.estado"
-                    :items="estados"
-                    label="Estado"
-                    :rules="[rules.required]"
-                    required
-                  ></v-select>
+                  <v-select v-model="duplicata.estado" :items="estados" label="Estado" :rules="[rules.required]"
+                    required></v-select>
 
                   <!-- Button to Calculate Probability -->
-                  <v-btn
-                    type="submit"
-                    @click.prevent="calcularProbabilidade"
-                    color="primary"
-                  >
+                  <v-btn type="submit" @click.prevent="calcularProbabilidade" color="primary">
                     Calcular
                   </v-btn>
                   <v-spacer></v-spacer>
-                  <v-btn
-                     @click="limparFormulario"
-                      color="red"
-                      >
-                      Limpar
+                  <v-btn @click="limparFormulario" color="red">
+                    Limpar
                   </v-btn>
                 </v-form>
 
@@ -157,28 +124,19 @@
                 <!-- Exibir Probabilidade -->
                 <div class="probabilidade-card" v-if="resultado">
                   <h3>Probabilidade de Sucesso</h3>
-                  <div
-                    class="probabilidade-valor"
-                    :style="{ color: probabilidadeColor }"
-                  >
+                  <div class="probabilidade-valor" :style="{ color: probabilidadeColor }">
                     {{ resultado.confianca }}%
                   </div>
-                  <div
-                    class="progress-bar-container"
-                    style="
+                  <div class="progress-bar-container" style="
                       background-color: #e0e0e0;
                       border-radius: 5px;
                       overflow: hidden;
-                    "
-                  >
-                    <div
-                      class="progress-bar"
-                      :style="{
-                        width: resultado.confianca + '%',
-                        height: '10px',
-                        backgroundColor: probabilidadeColor,
-                      }"
-                    ></div>
+                    ">
+                    <div class="progress-bar" :style="{
+                      width: resultado.confianca + '%',
+                      height: '10px',
+                      backgroundColor: probabilidadeColor,
+                    }"></div>
                   </div>
                   <p class="probabilidade-feedback">
                     {{ feedbackProbabilidade }}
@@ -213,7 +171,7 @@ export default {
     const drawer = ref(true);
     const username = ref(localStorage.getItem("username"));
     const router = useRouter();
-    
+
     const segmentos = ["produto", "serviço"];
     const areas = [
       "COMERCIO", "INDUSTRIA", "DISTRIBUIDORA", "PRODUTOS", "PLASTICOS", "QUIMICA", "SERVIÇOS", "ALIMENTOS",
@@ -277,7 +235,7 @@ export default {
         }
       }
     };
-    
+
     const limparFormulario = () => {
       duplicata.value = {
         dueDate: "",
@@ -298,7 +256,7 @@ export default {
 
     const navigateTo = (page) => {
       router.push(`/${page}`);
-        }; 
+    };
 
     return {
       duplicata,
@@ -331,7 +289,8 @@ export default {
 
 .progress-bar {
   height: 10px;
-  background-color: green; /* Default background color */
+  background-color: green;
+  /* Default background color */
 }
 
 .probabilidade-card {
@@ -339,40 +298,50 @@ export default {
   padding: 15px;
   border: 1px solid #ccc;
   border-radius: 8px;
-  background-color: #B9E5E8; /* Light background color */
+  background-color: #B9E5E8;
+  /* Light background color */
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
+
 .v-chip {
   margin-left: 10px;
 }
+
 .v-navigation-drawer {
   width: 200px;
   background-color: #1679AB;
 }
+
 .v-card {
   padding: 64px;
 }
+
 .drawer-text {
   color: white !important;
 }
-.background-image{
+
+.background-image {
   background-image: url('@/assets/abstract.jpg');
   background-size: cover;
   background-position: center;
   min-height: 100vh;
 }
+
 .min-height {
   min-height: 100vh;
 }
+
 .logout-icon {
   position: fixed;
   bottom: 20px;
   left: 20px;
 }
+
 .spc-score {
   display: flex;
   align-items: center;
 }
+
 .spc-score .icon {
   margin-right: 4px;
   font-size: 35px;

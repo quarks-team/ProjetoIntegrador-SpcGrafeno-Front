@@ -1,11 +1,6 @@
 <template>
   <v-app>
-    <v-navigation-drawer
-      app
-      v-model="drawer"
-      permanent
-      class="drawer-background"
-    >
+    <v-navigation-drawer app v-model="drawer" permanent class="drawer-background">
       <v-list>
         <v-list-item>
           <v-btn icon @click="navigateTo('home')">
@@ -14,12 +9,10 @@
           <v-spacer></v-spacer>
 
           <v-list-item-content>
-            <v-list-item-title>Bem vindo {{ username }}</v-list-item-title>
+            <v-list-item-title>Bem-vindo {{ username }}</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
         <v-divider></v-divider>
-
-        
 
         <v-list-item link @click="navigateTo('duplicatas')" class="drawer-text">
           <v-list-item-action>
@@ -27,6 +20,15 @@
           </v-list-item-action>
           <v-list-item-content>
             <v-list-item-title>DUPLICATAS</v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
+
+        <v-list-item link @click="navigateTo('data-previsao')" class="drawer-text">
+          <v-list-item-action>
+            <v-icon color="white">mdi-cached</v-icon>
+          </v-list-item-action>
+          <v-list-item-content>
+            <v-list-item-title>HISTÓRICO DE DUPLICATAS</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
 
@@ -58,13 +60,13 @@
 
     <v-app-bar app color="green lighten-3" flat>
       <v-container class="d-flex justify-center align-center">
-      <div class="spc-score">
-      <v-toolbar-side-icon>
-        <v-icon class="icon" large>mdi-speedometer</v-icon>
-      </v-toolbar-side-icon>
-      <v-toolbar-title> SPC Score </v-toolbar-title>
-    </div>
-  </v-container>
+        <div class="spc-score">
+          <v-toolbar-side-icon>
+            <v-icon class="icon" large>mdi-speedometer</v-icon>
+          </v-toolbar-side-icon>
+          <v-toolbar-title> SPC Score </v-toolbar-title>
+        </div>
+      </v-container>
       <v-spacer></v-spacer>
     </v-app-bar>
 
@@ -81,12 +83,7 @@
               </v-card-subtitle>
               <v-divider></v-divider>
 
-              <v-progress-circular
-                :value="scorePercentage"
-                :size="150"
-                color="blue"
-                class="mx-auto"
-              >
+              <v-progress-circular :value="scorePercentage" :size="150" color="blue" class="mx-auto">
                 {{ scorePercentage.toFixed(0) }}%
               </v-progress-circular>
             </v-card>
@@ -99,34 +96,23 @@
               </v-card-title>
               <v-card-text v-if="endorserScore">
                 <!-- Barra de Progresso Linear para Aberto -->
-              <v-progress-linear
-                :value="getProgressValue(endorserScore?.ongoing_transactions)"
-                :height="20"
-                color="blue"
-                class="mb-2"
-              >
-                Ativas {{ endorserScore?.ongoing_transactions !== null ? endorserScore.ongoing_transactions : 0 }}
-              </v-progress-linear>
+                <v-progress-linear :value="getProgressValue(endorserScore?.ongoing_transactions)" :height="20"
+                  color="blue" class="mb-2">
+                  Ativas {{ endorserScore?.ongoing_transactions !== null ? endorserScore.ongoing_transactions : 0 }}
+                </v-progress-linear>
 
-              <!-- Barra de Progresso Linear para Fechado -->
-              <v-progress-linear
-                :value="getProgressValue(endorserScore?.successful_transactions)"
-                :height="20"
-                color="green"
-                class="mb-2"
-              >
-                Concluída {{ endorserScore?.successful_transactions !== null ? endorserScore.successful_transactions : 0 }}
-              </v-progress-linear>
+                <!-- Barra de Progresso Linear para Fechado -->
+                <v-progress-linear :value="getProgressValue(endorserScore?.successful_transactions)" :height="20"
+                  color="green" class="mb-2">
+                  Concluída {{ endorserScore?.successful_transactions !== null ? endorserScore.successful_transactions :
+                    0 }}
+                </v-progress-linear>
 
-              <!-- Barra de Progresso Linear para Cancelado -->
-              <v-progress-linear
-                :value="getProgressValue(endorserScore?.voided_transactions)"
-                :height="20"
-                color="red"
-                class="mb-2"
-              >
-                Cancelado {{ endorserScore?.voided_transactions !== null ? endorserScore.voided_transactions : 0 }}
-              </v-progress-linear>
+                <!-- Barra de Progresso Linear para Cancelado -->
+                <v-progress-linear :value="getProgressValue(endorserScore?.voided_transactions)" :height="20"
+                  color="red" class="mb-2">
+                  Cancelado {{ endorserScore?.voided_transactions !== null ? endorserScore.voided_transactions : 0 }}
+                </v-progress-linear>
               </v-card-text>
               <v-card-text v-else>
                 Carregando dados...
@@ -142,7 +128,7 @@
 <script>
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import { grafenoAPI} from "@/base_url/baseUrlNode";
+import { grafenoAPI } from "@/base_url/baseUrlNode";
 
 export default {
   setup() {
@@ -162,15 +148,15 @@ export default {
     };
 
     const navigateTo = (page) => {
-          router.push(`/${page}`);
-        };
+      router.push(`/${page}`);
+    };
 
     // Função para buscar o score do back-end
     const fetchEndorserScore = async () => {
       try {
         const response = await grafenoAPI.get(`/score/${username.value}`);
 
-        if (response.data.score && response.data.score.length > 0){
+        if (response.data.score && response.data.score.length > 0) {
           const scoreData = response.data.score[0];
           score.value = scoreData.finalScore;
           updateScoreText();
@@ -184,8 +170,8 @@ export default {
         } else {
           console.error('Nenhum score encontrado na resposta');
         }
-        
-      } 
+
+      }
       catch (error) {
         console.error("Erro ao buscar o score:", error);
       }
@@ -250,15 +236,18 @@ export default {
 .min-height {
   min-height: 100vh;
 }
+
 .logout-icon {
   position: fixed;
   bottom: 20px;
   left: 20px;
 }
+
 .spc-score {
   display: flex;
   align-items: center;
 }
+
 .spc-score .icon {
   margin-right: 4px;
   font-size: 35px;
