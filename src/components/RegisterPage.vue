@@ -9,48 +9,19 @@
           <v-card-text>
             <v-form v-model="valid" ref="form" lazy-validation>
               <!-- Nome -->
-              <v-text-field
-                v-model="name"
-                :rules="nameRules"
-                label="Nome"
-                required
-              ></v-text-field>
+              <v-text-field v-model="name" :rules="nameRules" label="Nome" required></v-text-field>
 
               <!-- E-mail -->
-              <v-text-field
-                v-model="email"
-                :rules="emailRules"
-                label="E-mail"
-                required
-              ></v-text-field>
-
-              <!-- CPF ou CNPJ -->
-              <v-text-field
-                v-model="document"
-                :rules="documentRules"
-                label="CPF ou CNPJ"
-              ></v-text-field>
+              <v-text-field v-model="email" :rules="emailRules" label="E-mail" required></v-text-field>
 
               <!-- Senha -->
-              <v-text-field
-                v-model="password"
-                :rules="passwordRules"
-                label="Senha"
-                type="password"
-                required
-              ></v-text-field>
+              <v-text-field v-model="password" :rules="passwordRules" label="Senha" type="password"
+                required></v-text-field>
 
-              <v-checkbox
-                v-model="termsAccepted"
-                :rules="termsRules"
-                label="Eu aceito os termos e condições"
-              ></v-checkbox>
+              <v-checkbox v-model="consentStatus" :rules="termsRules"
+                label="Eu aceito os termos e condições"></v-checkbox>
 
-              <v-btn
-                :disabled="!termsAccepted || !valid"
-                color="primary"
-                @click="submit"
-              >
+              <v-btn :disabled="!consentStatus || !valid" color="primary" @click="submit">
                 Cadastrar
               </v-btn>
             </v-form>
@@ -88,11 +59,8 @@
                 <v-list-item-subtitle>{{ policy.description }}</v-list-item-subtitle>
               </v-list-item-content>
               <v-list-item-action>
-                <v-checkbox
-                  v-model="policy.status"
-                  :disabled="policy.isMandatory"
-                  :label="policy.isMandatory ? 'Obrigatório' : 'Aceito'"
-                ></v-checkbox>
+                <v-checkbox v-model="policy.status" :disabled="policy.isMandatory"
+                  :label="policy.isMandatory ? 'Obrigatório' : 'Aceito'"></v-checkbox>
               </v-list-item-action>
             </v-list-item>
           </v-list>
@@ -120,12 +88,11 @@ export default {
       name: "",
       email: "",
       password: "",
-      document: "",
-      termsAccepted: false,
+      consentStatus: false,
       showConsentPopup: false,
       policies: [],
       userId: null,
-      // Regras de validação
+      // Validation rules
       nameRules: [(v) => !!v || "Nome é obrigatório"],
       emailRules: [
         (v) => !!v || "E-mail é obrigatório",
@@ -135,65 +102,70 @@ export default {
         (v) => !!v || "Senha é obrigatória",
         (v) => v.length >= 6 || "A senha deve ter pelo menos 6 caracteres",
       ],
-      documentRules: [
-        (v) => this.validateDocument(v) || "CPF ou CNPJ deve ser válido",
-      ],
       termsRules: [(v) => !!v || "Você deve aceitar os termos e condições"],
     };
   },
   methods: {
     async submit() {
-  if (this.$refs.form.validate() && this.termsAccepted) {
-    try {
-      // Criação do usuário
-      const response = await grafenoAPI.post('/user', {
-        username: this.name,
-        email: this.email,
-        password: this.password,
-        cnpj: this.document || null,
-      });
+      if (this.$refs.form.validate() && this.consentStatus) {
+        try {
+          // Constructing the object to match the required format
+          const userData = {
+            username: this.name,
+            email: this.email,
+            password: this.password,
+            consentStatus: this.consentStatus,
+          };
 
-      // Log da resposta para depuração
-      console.log("Usuário criado com sucesso:", response.data);
+          // Sending the POST request to create the user
+          const response = await grafenoAPI.post('/user', userData);
 
-      // Verificação do ID do usuário
-      if (response.data && response.data.id) {
-            this.userId = response.data.id;
+          console.log("Usuário criado com sucesso:", response.data);
+
+          // Handle response data
+          if (response.data && response.data._id) {
+            this.userId = response.data._id;
             this.showConsentPopup = true;
+
+            // Optionally log consent details
+            console.log("Consent Details:", {
+              consentDate: response.data.consentDate,
+              acceptanceTerms: response.data.acceptanceTerms,
+            });
+
             await this.fetchPolicies();
           } else {
             throw new Error("ID do usuário não retornado.");
           }
         } catch (error) {
-          alert('Erro ao criar o usuário: ' + error.response?.data?.message || error.message);
+          alert(
+            'Erro ao criar o usuário: ' +
+            (error.response?.data?.message || error.message)
+          );
         }
       }
     },
 
-    validateDocument(document) {
-      const sanitizedDocument = document.replace(/\D/g, '');
-      return sanitizedDocument.length === 11 || sanitizedDocument.length === 14;
-    },
     async fetchPolicies() {
-  // Adiciona verificação para garantir que o userId não seja undefined
-  if (this.userId) {
-    try {
-      const response = await grafenoAPI.get(`/user-consent/${this.userId}`);
-      console.log("Políticas de consentimento buscadas:", response.data);
-      this.policies = response.data.map((policy) => ({
-        id: policy.policyId,
-        name: `Política ${policy.policyId}`,
-        description: `Descrição da política ${policy.policyId}`,
-        status: policy.isActive,
-        isMandatory: policy.isMandatory,
-      }));
-    } catch (error) {
-      console.error('Erro ao buscar políticas:', error.response?.data?.message || error.message);
-    }
-  } else {
-    console.error("User ID não definido. Não é possível buscar políticas.");
-  }
-},
+      if (this.userId) {
+        try {
+          const response = await grafenoAPI.get(`/user-consent/${this.userId}`);
+          console.log("Políticas de consentimento buscadas:", response.data);
+          this.policies = response.data.map((policy) => ({
+            id: policy.policyId,
+            name: `Política ${policy.policyId}`,
+            description: `Descrição da política ${policy.policyId}`,
+            status: policy.isActive,
+            isMandatory: policy.isMandatory,
+          }));
+        } catch (error) {
+          console.error('Erro ao buscar políticas:', error.response?.data?.message || error.message);
+        }
+      } else {
+        console.error("User ID não definido. Não é possível buscar políticas.");
+      }
+    },
+
     async saveConsent() {
       const consentData = {
         userId: this.userId,
@@ -212,9 +184,10 @@ export default {
         console.error('Erro ao salvar consentimento:', error);
       }
     },
+
     closePopup() {
       this.showConsentPopup = false;
-      this.termsAccepted = false;
+      this.consentStatus = false;
     },
   },
 };
@@ -237,12 +210,10 @@ export default {
   color: #3f51b5;
   text-decoration: underline;
 }
+
 .login-link {
   color: #3f51b5;
   cursor: pointer;
   text-decoration: underline;
 }
 </style>
-
-
-  

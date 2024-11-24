@@ -2,55 +2,59 @@
     <v-app>
     <v-navigation-drawer app v-model="drawer" permanent class="drawer-background">
       <v-list>
-        <v-list-item>
-          <v-btn icon @click="navigateTo('home')">
-            <v-icon>mdi-home</v-icon>
-          </v-btn>
-          <v-list-item-content>
-            <v-list-item-title>Bem vindo {{ username || 'Usuário' }}</v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
-        <v-divider></v-divider>
+  <v-list-item>
+    <v-btn icon @click="navigateTo('home')">
+      <v-icon>mdi-home</v-icon>
+    </v-btn>
+    <v-list-item-content>
+      <v-list-item-title>Bem-vindo {{ username || 'Usuário' }}</v-list-item-title>
+    </v-list-item-content>
+  </v-list-item>
+  <v-divider></v-divider>
 
-        <v-list-item link @click="navigateTo('duplicatas')" class="drawer-text">
-          <v-list-item-action>
-            <v-icon color="white">mdi-calendar-clock</v-icon>
-          </v-list-item-action>
-          <v-list-item-content>
-            <v-list-item-title>DUPLICATAS</v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
+  <v-list-item link @click="navigateTo('duplicatas')" class="drawer-text">
+    <v-list-item-action>
+      <v-icon color="white">mdi-calendar-clock</v-icon>
+    </v-list-item-action>
+    <v-list-item-content>
+      <v-list-item-title>DUPLICATAS</v-list-item-title>
+    </v-list-item-content>
+  </v-list-item>
 
-        <v-list-item link @click="navigateTo('data-previsao')" class="drawer-text">
-            <v-list-item-action>
-              <v-icon color="white">mdi-cached</v-icon>
-            </v-list-item-action>
-            <v-list-item-content>
-              <v-list-item-title>HISTÓRICO DE DUPLICATAS</v-list-item-title>
-            </v-list-item-content>
-        </v-list-item>
+  <v-list-item link @click="navigateTo('data-previsao')" class="drawer-text">
+    <v-list-item-action>
+      <v-icon color="white">mdi-cached</v-icon>
+    </v-list-item-action>
+    <v-list-item-content>
+      <v-list-item-title>HISTÓRICO DE DUPLICATAS</v-list-item-title>
+    </v-list-item-content>
+  </v-list-item>
 
-        <v-list-item link @click="navigateTo('config')" class="drawer-text">
-          <v-list-item-action>
-            <v-icon color="white">mdi-cog</v-icon>
-          </v-list-item-action>
-          <v-list-item-content>
-            <v-list-item-title>CONFIGURAÇÕES</v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
+  <v-list-item link @click="navigateTo('upload')" class="drawer-text">
+    <v-list-item-action>
+      <v-icon color="white">mdi-file-upload</v-icon>
+    </v-list-item-action>
+    <v-list-item-content>
+      <v-list-item-title>DOCUMENTOS</v-list-item-title>
+    </v-list-item-content>
+  </v-list-item>
 
-        <v-spacer></v-spacer>
-        
-        <v-btn
-        @click="logout"
-        class="logout-icon"
-        color="white"
-        fab
-        icon
-      >
-      <v-icon>mdi-logout</v-icon>
-      </v-btn>
-      </v-list>
+  <v-list-item link @click="navigateTo('config')" class="drawer-text">
+    <v-list-item-action>
+      <v-icon color="white">mdi-cog</v-icon>
+    </v-list-item-action>
+    <v-list-item-content>
+      <v-list-item-title>CONFIGURAÇÕES</v-list-item-title>
+    </v-list-item-content>
+  </v-list-item>
+
+  <v-spacer></v-spacer>
+
+  <v-btn @click="logout" class="logout-icon" color="white" fab icon>
+    <v-icon>mdi-logout</v-icon>
+  </v-btn>
+</v-list>
+
     </v-navigation-drawer>
 
     <v-app-bar app color="green lighten-3" flat>
