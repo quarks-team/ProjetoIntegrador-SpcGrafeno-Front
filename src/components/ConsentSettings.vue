@@ -232,12 +232,6 @@ export default {
   left: 20px;
 }
 
-.logout-icon {
-  position: fixed;
-  bottom: 20px;
-  left: 20px;
-}
-
 .spc-score {
   display: flex;
   align-items: center;

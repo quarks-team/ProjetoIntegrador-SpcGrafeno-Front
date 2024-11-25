@@ -73,7 +73,9 @@
     <v-main>
       <v-container fluid class="background-image">
         <v-row justify="center" align="center" class="min-height">
+          <!-- Coluna da Pontuação do Score e Histórico de Contratos -->
           <v-col cols="12" md="6" class="text-center">
+            <!-- Card da Pontuação do Score -->
             <v-card class="mx-auto" flat>
               <v-card-title class="text-center">
                 Seu Score está {{ scoreText }}
@@ -87,10 +89,9 @@
                 {{ scorePercentage.toFixed(0) }}%
               </v-progress-circular>
             </v-card>
-          </v-col>
 
-          <v-col cols="12" md="6" class="text-center">
-            <v-card flat>
+            <!-- Card do Histórico de Contratos -->
+            <v-card flat class="mt-5">
               <v-card-title class="text-center">
                 HISTÓRICO DE CONTRATOS
               </v-card-title>
@@ -104,8 +105,7 @@
                 <!-- Barra de Progresso Linear para Fechado -->
                 <v-progress-linear :value="getProgressValue(endorserScore?.successful_transactions)" :height="20"
                   color="green" class="mb-2">
-                  Concluída {{ endorserScore?.successful_transactions !== null ? endorserScore.successful_transactions :
-                    0 }}
+                  Concluída {{ endorserScore?.successful_transactions !== null ? endorserScore.successful_transactions : 0 }}
                 </v-progress-linear>
 
                 <!-- Barra de Progresso Linear para Cancelado -->
@@ -119,6 +119,13 @@
               </v-card-text>
             </v-card>
           </v-col>
+
+          <!-- Coluna do Card de Previsão -->
+          <v-col cols="12" md="6" class="text-center">
+            <v-card flat>
+                <ScorePrediction />
+            </v-card>
+          </v-col>
         </v-row>
       </v-container>
     </v-main>
@@ -129,8 +136,12 @@
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { grafenoAPI } from "@/base_url/baseUrlNode";
+import ScorePrediction from "@/components/ScorePrediction.vue";
 
 export default {
+  components: {
+    ScorePrediction,
+  },
   setup() {
     const score = ref(0);
     const scoreText = ref("");
