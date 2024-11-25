@@ -1,239 +1,100 @@
 <template>
-    <v-container>
-      <v-card>
-        <v-card-title class="headline">Previsão de Score</v-card-title>
-        <v-card-text>
-          <v-form ref="form" v-model="isFormValid">
-            <!-- Score Alvo -->
-            <v-text-field
-              v-model="formData.score"
-              label="Score Alvo"
-              type="number"
-              :rules="[rules.required, rules.positive]"
-              outlined
-              clearable
-            ></v-text-field>
-  
-            <!-- Parâmetros Opcionais -->
-            <v-text-field
-              v-model="formData.voided_transactions"
-              label="Duplicatas Canceladas"
-              type="number"
-              :rules="[rules.nonNegative]"
-              outlined
-              clearable
-            ></v-text-field>
-  
-            <v-text-field
-              v-model="formData.ongoing_transactions"
-              label="Duplicatas Ativas"
-              type="number"
-              :rules="[rules.nonNegative]"
-              outlined
-              clearable
-            ></v-text-field>
-  
-            <v-text-field
-              v-model="formData.overall_transactions"
-              label="Total de Duplicatas"
-              type="number"
-              :rules="[rules.nonNegative]"
-              outlined
-              clearable
-            ></v-text-field>
-  
-            <v-text-field
-              v-model="formData.segment_products_count"
-              label="Produtos por Segmento"
-              type="number"
-              :rules="[rules.nonNegative]"
-              outlined
-              clearable
-            ></v-text-field>
-  
-            <v-text-field
-              v-model="formData.segment_services_count"
-              label="Serviços por Segmento"
-              type="number"
-              :rules="[rules.nonNegative]"
-              outlined
-              clearable
-            ></v-text-field>
-  
-            <v-text-field
-              v-model="formData.non_voided_transactions"
-              label="Duplicatas Não Canceladas"
-              type="number"
-              :rules="[rules.nonNegative]"
-              outlined
-              clearable
-            ></v-text-field>
-  
-            <v-text-field
-              v-model="formData.successful_transactions"
-              label="Duplicatas Bem-Sucedidas"
-              type="number"
-              :rules="[rules.nonNegative]"
-              outlined
-              clearable
-            ></v-text-field>
-  
-            <v-text-field
-              v-model="formData.renegotiation_delay_days"
-              label="Dias de Atraso em Renegociações"
-              type="number"
-              :rules="[rules.nonNegative]"
-              outlined
-              clearable
-            ></v-text-field>
-  
-            <v-text-field
-              v-model="formData.median_installment_amount"
-              label="Valor Médio de Parcelas"
-              type="number"
-              :rules="[rules.nonNegative]"
-              outlined
-              clearable
-            ></v-text-field>
-  
-            <!-- Botões -->
-            <v-btn
-              color="primary"
-              :disabled="!isFormValid || loading"
-              @click="fetchRecommendations"
-            >
-              Prever Score
-            </v-btn>
-            <v-btn color="secondary" @click="resetForm">Limpar</v-btn>
-          </v-form>
-  
-          <!-- Indicador de Carregamento -->
-          <v-progress-circular
-            v-if="loading"
-            indeterminate
-            color="primary"
-            class="my-4"
-          ></v-progress-circular>
-  
-          <!-- Mensagem de Erro -->
-          <v-alert
-            v-if="errorMessage"
-            type="error"
-            dismissible
-            class="my-4"
-          >
-            {{ errorMessage }}
-          </v-alert>
-  
-          <!-- Recomendações -->
-          <v-list v-if="recommendations">
-            <v-subheader>Recomendações</v-subheader>
-            <v-divider></v-divider>
-            <v-list-item
-              v-for="(recommendation, key) in recommendations"
-              :key="key"
-            >
-              <v-list-item-content>
-                <v-list-item-title>{{ key }}</v-list-item-title>
-                <v-list-item-subtitle>
-                  {{ recommendation.justification }}
-                </v-list-item-subtitle>
-              </v-list-item-content>
-              <v-chip
-                :color="recommendation.impact > 0 ? 'green' : 'red'"
-                dark
-              >
-                {{ recommendation.impact.toFixed(2) }} pontos
-              </v-chip>
-            </v-list-item>
-          </v-list>
-        </v-card-text>
-      </v-card>
-    </v-container>
+    <v-row >
+      <!-- Card com o Score Estimado e Recomendações -->
+      <v-col cols="12" md="6">
+        <v-card outlined class="mx-auto" max-width="500">
+          <v-card-title class="text-h6">Recomendações de Score</v-card-title>
+          <v-card-text class="pa-4">
+            <div v-if="endorserScore && endorserScore.recommended_changes && Object.keys(endorserScore.recommended_changes).length > 0">
+              <v-list dense>
+                <v-list-item-group v-for="(change, key) in endorserScore.recommended_changes" :key="key">
+                  <v-list-item>
+                    <v-list-item-content>
+                      <v-list-item-title>{{ key }}</v-list-item-title>
+                      <v-list-item-subtitle><strong>Direção:</strong>({{ change.impact_direction }})</v-list-item-subtitle>
+                      <v-list-item-subtitle><strong>Impacto:</strong> {{ change.impact }} pontos</v-list-item-subtitle>
+                    </v-list-item-content>
+                  </v-list-item>
+                  </v-list-item-group>
+                </v-list>
+            </div>
+            <div v-else>
+              <p>{{ endorserScore.message || 'Nenhuma recomendação necessária. O score já é o máximo possível.' }}</p>
+            </div>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
   </template>
   
   <script>
-  import axios from "axios";
+  import { ref, onMounted } from 'vue';
+  import { grafenoAPI, pythonAPI } from '@/base_url/baseUrlNode';
   
   export default {
-    data() {
-      return {
-        formData: {
-          score: null,
-          voided_transactions: 0,
-          ongoing_transactions: 0,
-          overall_transactions: 0,
-          segment_products_count: 0,
-          segment_services_count: 0,
-          non_voided_transactions: 0,
-          successful_transactions: 0,
-          renegotiation_delay_days: 0,
-          median_installment_amount: 0,
-        },
-        recommendations: null,
-        loading: false,
-        errorMessage: null,
-        isFormValid: false,
-        rules: {
-          required: (value) => !!value || "Campo obrigatório.",
-          positive: (value) =>
-            value > 0 || "O score deve ser um número positivo.",
-          nonNegative: (value) =>
-            value >= 0 || "O valor deve ser um número não negativo.",
-        },
-      };
-    },
-    methods: {
-      async fetchRecommendations() {
-        this.loading = true;
-        this.errorMessage = null;
-        this.recommendations = null;
+    setup() {
+      // Inicializando as variáveis reativas
+      const username = ref(localStorage.getItem('username')); // Obtém o nome do usuário do localStorage
+      const endorserScore = ref({
+        recommended_changes: [],
+        success: false,
+        message: '',
+      });
+      const estimatedScore = ref(0);
   
+      // Função para buscar o Score do Endorser
+      const fetchEndorserScore = async () => {
         try {
-          // 1. Criar modelo
-          const createModelResponse = await axios.post(
-            "/create_recommendation_model"
-          );
-          if (!createModelResponse.data.success) {
-            throw new Error("Erro ao criar o modelo de recomendação.");
-          }
+          const response = await grafenoAPI.get(`/score/${username.value}`);
   
-          // 2. Buscar recomendações
-          const recommendationResponse = await axios.post(
-            "/recomendation-score",
-            this.formData
-          );
+          if (response.data.score && response.data.score.length > 0) {
+            const scoreData = response.data.score[0];
+            estimatedScore.value = scoreData.finalScore;
   
-          if (recommendationResponse.data.success) {
-            this.recommendations = recommendationResponse.data.recommended_changes;
-          } else {
-            this.errorMessage =
-              "Não foi possível prever o score com os dados fornecidos.";
+            // Definindo as variáveis de endorserScore
+            endorserScore.value = {
+              ongoing_transactions: scoreData.inputVariables.ongoing_transactions,
+              successful_transactions: scoreData.inputVariables.successful_transactions,
+              voided_transactions: scoreData.inputVariables.voided_transactions,
+              non_voided_transactions: scoreData.inputVariables.non_voided_transactions,
+              renegotiation_delay_days: scoreData.inputVariables.renegotiation_delay_days,
+              median_installment_amount: scoreData.inputVariables.median_installment_amount,
+              segment_services_count: scoreData.inputVariables.segment_services_count,
+              segment_products_count: scoreData.inputVariables.segment_products_count,
+              overall_transactions: scoreData.inputVariables.overall_transactions,
+              score: scoreData.finalScore
+            };
+  
+            // Aqui você pode realizar a chamada para a IA para obter recomendações baseadas nos dados de score
+            getRecommendations(endorserScore.value);
           }
         } catch (error) {
-          this.errorMessage =
-            error.response?.data?.message || "Erro ao conectar com a API.";
-        } finally {
-          this.loading = false;
+          console.error('Erro ao buscar o score do endorser:', error);
         }
-      },
-      resetForm() {
-        this.formData = {
-          score: null,
-          voided_transactions: 0,
-          ongoing_transactions: 0,
-          overall_transactions: 0,
-          segment_products_count: 0,
-          segment_services_count: 0,
-          non_voided_transactions: 0,
-          successful_transactions: 0,
-          renegotiation_delay_days: 0,
-          median_installment_amount: 0,
-        };
-        this.recommendations = null;
-        this.errorMessage = null;
-        this.$refs.form.resetValidation();
-      },
+      };
+  
+      // Função para obter as recomendações do backend com base nos dados de score
+      const getRecommendations = async (scoreData) => {
+        try {
+          const response = await pythonAPI.post('/recomendation-score', scoreData);
+  
+          // Atualizando o estado com as recomendações
+          endorserScore.value.recommended_changes = response.data.recommended_changes || [];
+          endorserScore.value.message = response.data.message || '';
+        } catch (error) {
+          console.error('Erro ao obter recomendações de score:', error);
+        }
+      };
+  
+      // Executando a função ao montar o componente
+      onMounted(() => {
+        fetchEndorserScore();
+      });
+  
+      return {
+        endorserScore,
+        estimatedScore,
+      };
     },
   };
   </script>

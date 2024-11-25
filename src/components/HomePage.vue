@@ -121,10 +121,10 @@
           </v-col>
 
           <!-- Coluna do Card de Previsão -->
-          <v-col cols="12" md="6" class="text-center">
-            <v-card flat>
+          <v-col cols="12" md="6">
+            
                 <ScorePrediction />
-            </v-card>
+            
           </v-col>
         </v-row>
       </v-container>
