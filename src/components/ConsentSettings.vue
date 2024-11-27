@@ -1,13 +1,16 @@
 <template>
   <v-app>
+    <!-- Menu Lateral -->
     <v-navigation-drawer app v-model="drawer" permanent class="drawer-background">
       <v-list>
         <v-list-item>
           <v-btn icon @click="navigateTo('home')">
             <v-icon>mdi-home</v-icon>
           </v-btn>
+          <v-spacer></v-spacer>
+
           <v-list-item-content>
-            <v-list-item-title>Bem-vindo {{ username || 'Usuário' }}</v-list-item-title>
+            <v-list-item-title>Bem vindo {{ username || 'Usuário' }}</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
         <v-divider></v-divider>
@@ -47,60 +50,73 @@
       </v-list>
     </v-navigation-drawer>
 
+    <!-- Barra de Navegação -->
     <v-app-bar app color="green lighten-3" flat>
       <v-container class="d-flex justify-center align-center">
         <div class="spc-score">
           <v-toolbar-side-icon>
-            <v-icon class="icon" large>mdi-tune</v-icon>
+            <v-icon class="icon" large>mdi-account-check</v-icon>
           </v-toolbar-side-icon>
-          <v-toolbar-title> Configurações </v-toolbar-title>
+          <v-toolbar-title>Gerenciamento de Consentimento</v-toolbar-title>
         </div>
       </v-container>
       <v-spacer></v-spacer>
     </v-app-bar>
 
-    <main>
-      <v-container fluid class="background-image">
-        <v-row justify="center" align="center" class="min-height">
-          <v-col cols="12" md="6" class="text-center">
-            <v-card class="mx-auto" flat>
-              <v-card-title>
-                Configurações de Consentimento
-              </v-card-title>
-              <v-card-subtitle>
-                Revise e gerencie as permissões para o uso dos seus dados.
-              </v-card-subtitle>
-              <v-card-text>
-                <v-form v-model="valid">
-                  <v-list dense>
-                    <v-subheader>Nossos Termos e Condições
-                    </v-subheader>
-
-                    <v-list-item v-for="policy in policies" :key="policy.id">
-                      <v-list-item-content>
-                        <v-list-item-title>Política{{ policy.id }}</v-list-item-title>
-                        <v-list-item-subtitle>{{ policy.description }}</v-list-item-subtitle>
-                      </v-list-item-content>
-                      <v-list-item-action>
-                        <v-checkbox v-if="!policy.isMandatory" v-model="policy.isActive"
-                          :label="policy.isActive ? 'Aceito' : 'Revogado'"></v-checkbox>
-                        <v-chip v-if="policy.isMandatory" label color="red" class="ml-2">
-                          Obrigatório
-                        </v-chip>
-                      </v-list-item-action>
-                    </v-list-item>
-                  </v-list>
-                </v-form>
-              </v-card-text>
-              <v-card-actions>
-                <v-spacer></v-spacer>
-                <v-btn color="primary" @click="savePolicies">Salvar Alterações</v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-col>
-        </v-row>
+    <!-- Conteúdo Principal -->
+    <v-main>
+      <v-container fluid>
+        <v-card>
+          <v-card-title>Gerenciar Permissões e Restrições</v-card-title>
+          <v-card-subtitle>Revise e gerencie as permissões para o uso dos seus dados.</v-card-subtitle>
+          <v-card-text>
+            <v-form v-model="valid">
+              <v-list dense>
+                <v-subheader>Termos e Condições</v-subheader>
+                <v-list-item v-for="policy in policies" :key="policy.id">
+                  <v-list-item-content>
+                    <v-list-item-title>Política {{ policy.id }}</v-list-item-title>
+                    <v-list-item-subtitle>{{ policy.description }}</v-list-item-subtitle>
+                  </v-list-item-content>
+                  <v-list-item-action>
+                    <v-checkbox v-if="!policy.isMandatory" v-model="policy.isActive"
+                      :label="policy.isActive ? 'Aceito' : 'Revogado'"></v-checkbox>
+                    <v-chip v-if="policy.isMandatory" label color="red" class="ml-2">
+                      Obrigatório
+                    </v-chip>
+                  </v-list-item-action>
+                </v-list-item>
+              </v-list>
+            </v-form>
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn color="primary" @click="savePolicies">Salvar Alterações</v-btn>
+          </v-card-actions>
+        </v-card>
       </v-container>
-    </main>
+
+      <v-container fluid>
+        <v-card>
+          <v-card-title>Termo Atual</v-card-title>
+          <v-card-text>
+            <p>Exiba o termo atual do usuário aqui.</p>
+          </v-card-text>
+        </v-card>
+      </v-container>
+
+      <v-container fluid>
+        <v-card>
+          <v-card-title>Histórico de Consentimento</v-card-title>
+          <v-card-text>
+            <p>Exiba aqui o histórico completo de consentimentos do usuário.</p>
+          </v-card-text>
+        </v-card>
+      </v-container>
+
+      
+
+    </v-main>
   </v-app>
 </template>
 
@@ -110,61 +126,65 @@ import { useRouter } from "vue-router";
 import { grafenoAPI } from "@/base_url/baseUrlNode";
 
 export default {
-  data() {
+  setup() {
     const router = useRouter();
     const drawer = ref(true);
-    const username = ref(localStorage.getItem('username'));
-    const userId = ref(localStorage.getItem('id'));
+    const username = ref(localStorage.getItem("username"));
+    const userId = ref(localStorage.getItem("id"));
     const policies = ref([]);
     const valid = ref(false);
+    const activeTab = ref(0); // Aba ativa (0 = Histórico, 1 = Termo Atual, 2 = Atualizar Consentimento)
 
+    // Função de logout
     const logout = () => {
-      localStorage.removeItem('id');
-      localStorage.removeItem('username');
-      router.push('/login');
+      localStorage.removeItem("id");
+      localStorage.removeItem("username");
+      router.push("/login");
     };
 
+    // Navegação entre rotas
     const navigateTo = (page) => {
       router.push(`/${page}`);
     };
 
+    // Busca políticas de consentimento
     const fetchPolicies = async () => {
       try {
-        const response = grafenoAPI.get(`/user-consent/${userId.value}`);
+        const response = await grafenoAPI.get(`/user-consent/${userId.value}`);
         if (response.data && Array.isArray(response.data)) {
-          policies.value = response.data.map(policy => ({
+          policies.value = response.data.map((policy) => ({
             id: policy.policyId,
             description: `Descrição para política ${policy.policyId}`,
             isActive: policy.isActive,
             isMandatory: policy.isMandatory,
-            acceptanceDate: policy.acceptanceDate
+            acceptanceDate: policy.acceptanceDate,
           }));
           console.log("Políticas de consentimento buscadas:", policies.value);
         } else {
           console.warn("Nenhuma política de consentimento encontrada.");
         }
       } catch (error) {
-        console.error('Erro ao buscar políticas:', error);
+        console.error("Erro ao buscar políticas:", error);
       }
     };
 
-
+    // Salva as políticas atualizadas
     const savePolicies = async () => {
       const consentData = {
         userId: userId.value,
-        consents: policies.value.map(policy => ({
+        consents: policies.value.map((policy) => ({
           id: policy.id,
           status: policy.isActive,
-          isMandatory: policy.isMandatory
-        }))
+          isMandatory: policy.isMandatory,
+        })),
       };
 
       try {
-        await grafenoAPI.post('/user-consent/update', consentData);
-        alert('Permissões atualizadas com sucesso');
+        await grafenoAPI.post("/user-consent/update", consentData);
+        alert("Permissões atualizadas com sucesso.");
       } catch (error) {
-        console.error('Erro ao salvar permissões:', error);
-        alert('Erro ao atualizar permissões');
+        console.error("Erro ao salvar permissões:", error);
+        alert("Erro ao atualizar permissões.");
       }
     };
 
@@ -179,14 +199,14 @@ export default {
       valid,
       userId,
       policies,
+      activeTab,
       fetchPolicies,
       savePolicies,
-      navigateTo
+      navigateTo,
     };
-  }
+  },
 };
 </script>
-
 
 <style scoped>
 .v-chip {
@@ -199,7 +219,7 @@ export default {
 }
 
 .v-card {
-  padding: 20px;
+  padding: 64px;
 }
 
 .drawer-text {
@@ -213,14 +233,9 @@ export default {
   min-height: 100vh;
 }
 
-.min-height {
-  min-height: 100vh;
-}
-
-.logout-icon {
-  position: fixed;
-  bottom: 20px;
-  left: 20px;
+.v-main {
+  padding-top: 64px;
+  /* Altura da App Bar */
 }
 
 .spc-score {
@@ -229,7 +244,11 @@ export default {
 }
 
 .spc-score .icon {
-  margin-right: 4px;
+  margin-right: 8px;
   font-size: 35px;
+}
+
+.logout-icon {
+  margin-top: auto;
 }
 </style>
