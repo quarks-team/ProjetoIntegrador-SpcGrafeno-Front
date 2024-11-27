@@ -97,110 +97,66 @@
       </v-container>
 
       <v-container fluid>
-        <div v-if="userTerm && userTerm.acceptanceTerms && userTerm.acceptanceTerms.length > 0">
-          <v-card class="mx-auto" id="cardTermoAtual" flat>
-            <!-- Exibindo informações do termo -->
-            <v-card-title class="text-center">
-              {{ userTerm.consentStatus ? 'Consentimento Aceito' : 'Consentimento Não Aceito' }}
-            </v-card-title>
-            <v-card-subtitle class="text-center display-3">
-              Termo: {{ userTerm.acceptanceTerms[0][0].description }}
-              <br><br>
-              Aceito pelo usuario: {{ userTerm.username }}
-            </v-card-subtitle>
-            <v-divider></v-divider>
-
-            <v-card-text>
-              <p><strong>Versão:</strong> {{ userTerm.acceptanceTerms[0][0].version }}</p>
-              <p><strong>Data do Consentimento:</strong> {{ new Date(userTerm.consentDate).toLocaleString() }}</p>
-            </v-card-text>
-
-            <v-card-text>
-              <p><strong>Itens do Termo:</strong></p>
-
-              <!-- Itens obrigatórios -->
-              <v-list>
-                <v-list-item-group
-                  v-if="userTerm.acceptanceTerms[0][0].items && userTerm.acceptanceTerms[0][0].items.length">
-                  <v-list-item
-                    v-for="(item, index) in userTerm.acceptanceTerms[0][0].items.filter(item => item.isMandatory)"
-                    :key="index">
-                    <v-list-item-content>
-                      <v-list-item-title>
-                        {{ item.name }} ({{ item.tag }})
-                        <span v-if="userTerm.acceptanceTerms[0][0].restrictions.includes(item.tag)"
-                          style="color: red; font-weight: bold;">
-                          [Rejeitado]
-                        </span>
-                      </v-list-item-title>
-                      <v-list-item-subtitle>{{ item.description }}</v-list-item-subtitle>
-                      <v-list-item-subtitle>Obrigatório</v-list-item-subtitle>
-                    </v-list-item-content>
-                  </v-list-item>
-                </v-list-item-group>
-              </v-list>
-
-              <!-- Divisão entre obrigatórios e não obrigatórios -->
-              <v-divider></v-divider>
-
-              <!-- Itens não obrigatórios -->
-              <v-list>
-                <v-list-item-group
-                  v-if="userTerm.acceptanceTerms[0][0].items && userTerm.acceptanceTerms[0][0].items.length">
-                  <v-list-item
-                    v-for="(item, index) in userTerm.acceptanceTerms[0][0].items.filter(item => !item.isMandatory)"
-                    :key="index">
-                    <v-list-item-content>
-                      <v-list-item-title>
-                        {{ item.name }} ({{ item.tag }})
-                        <span v-if="userTerm.acceptanceTerms[0][0].restrictions.includes(item.tag)"
-                          style="color: red; font-weight: bold;">
-                          [Rejeitado]
-                        </span>
-                      </v-list-item-title>
-                      <v-list-item-subtitle>{{ item.description }}</v-list-item-subtitle>
-                      <v-list-item-subtitle>Não Obrigatório</v-list-item-subtitle>
-                    </v-list-item-content>
-                  </v-list-item>
-                </v-list-item-group>
-              </v-list>
-            </v-card-text>
-
-            <!-- Exibindo as restrições -->
-            <v-card-text>
-              <p><strong>Restrições:</strong></p>
-              <v-list>
-                <v-list-item-group
-                  v-if="userTerm.acceptanceTerms[0][0].restrictions && userTerm.acceptanceTerms[0][0].restrictions.length">
-                  <v-list-item v-for="(restriction, index) in userTerm.acceptanceTerms[0][0].restrictions" :key="index">
-                    <v-list-item-content>
-                      <v-list-item-title>{{ restriction }}</v-list-item-title>
-                    </v-list-item-content>
-                  </v-list-item>
-                </v-list-item-group>
-              </v-list>
-            </v-card-text>
-          </v-card>
-
-          <!-- Botão para exportar para PDF com estilo e alinhamento ajustado -->
-          <div class="text-center mt-4">
-            <v-btn color="primary" @click="exportTermoAtualToPDF">Exportar termo para PDF</v-btn>
-          </div>
+        <div class="text-right mt-4">
+          <v-btn color="primary" @click="exportTermoAtualToPDF">Exportar histórico para PDF</v-btn>
         </div>
-
-        <!-- Caso userTerm esteja indefinido ou não tenha termos de aceitação -->
-        <div v-else>
-          <v-card>
-            <p>Carregando informações do termo...</p>
-          </v-card>
-        </div>
-      </v-container>
-
-      <v-container fluid>
-        <v-card>
-          <v-card-title>Histórico de Consentimento</v-card-title>
+        <v-card id="cardTermoHistorico">
+          <v-card-title class="text-h5">Histórico de Consentimento</v-card-title>
           <v-card-text>
-            <p>Exiba aqui o histórico completo de consentimentos do usuário.</p>
+            <div v-if="userHistorycal && userHistorycal.length > 0">
+              <v-list>
+                <!-- Ordena o histórico pelo campo de data (decrescente) -->
+                <v-list-item
+                  v-for="(consent, index) in [...userHistorycal].sort((a, b) => new Date(b.terms[0].createdAt) - new Date(a.terms[0].createdAt))"
+                  :key="consent._id" class="mb-4">
+                  <v-card flat outlined>
+                    <v-card-title class="text-h6">
+                      {{ index + 1 }} - {{ username }} aceitou o termo
+                    </v-card-title>
+                    <v-card-subtitle>
+                      <strong>Descrição:</strong> {{ consent.terms[0].description }}
+                    </v-card-subtitle>
+                    <v-card-subtitle>
+                      <strong>Versão:</strong> {{ consent.terms[0].version }}
+                    </v-card-subtitle>
+                    <v-card-subtitle>
+                      <strong>Data de Aceitação:</strong> {{ new Date(consent.terms[0].createdAt).toLocaleString() }}
+                    </v-card-subtitle>
+                    <v-card-subtitle>
+                      <strong>Ativo:</strong> {{ consent.isActive ? 'Sim' : 'Não' }}
+                    </v-card-subtitle>
+                    <v-divider></v-divider>
+
+                    <v-card-text>
+                      <p><strong>Itens do Termo:</strong></p>
+                      <v-list>
+                        <v-list-item-group>
+                          <v-list-item v-for="(item, itemIndex) in consent.terms[0].items" :key="itemIndex">
+                            <v-list-item-content>
+                              <v-list-item-title>
+                                Nome do item: {{ item.name }} 
+                                <br>
+                                Tag: {{ item.tag }}
+                                <span v-if="item.isMandatory"
+                                  style="color: red; font-weight: bold;">[Obrigatório]</span>
+                              </v-list-item-title>
+                              <v-list-item-subtitle>
+                                Descricao: {{ item.description }}
+                              </v-list-item-subtitle>
+                            </v-list-item-content>
+                          </v-list-item>
+                        </v-list-item-group>
+                      </v-list>
+                    </v-card-text>
+                  </v-card>
+                </v-list-item>
+              </v-list>
+            </div>
+            <div v-else>
+              <v-card>
+                <p>Não há histórico de consentimento para este usuário.</p>
+              </v-card>
+            </div>
           </v-card-text>
         </v-card>
       </v-container>
@@ -225,7 +181,7 @@ export default {
     const policies = ref([]);
     const valid = ref(false);
     const activeTab = ref(0);
-    const userTerm = ref();
+    const userHistorycal = ref();
 
     // Função de logout
     const logout = () => {
@@ -242,7 +198,7 @@ export default {
     // Busca historico de consentimento
     const fetchPolicies = async () => {
       try {
-        const response = await grafenoAPI.get(`/user-consent/${userId.value}`);
+        const response = await grafenoAPI.get(`/acceptance-terms`);
         if (response.data && Array.isArray(response.data)) {
           policies.value = response.data.map((policy) => ({
             id: policy.policyId,
@@ -280,23 +236,26 @@ export default {
       }
     };
 
-    const buscaTermoDoUser = async () => {
+    const buscaTermoHistoricoDoUser = async () => {
       try {
-        const response = await grafenoAPI.get(`/user/id/${userId.value}`);
+        const response = await grafenoAPI.get(`/user-consent/${userId.value}`);
 
         if (response.data !== null) {
-          userTerm.value = response.data;
-          console.log("Termo de uso vinculado ao user:", userTerm.value);
+          userHistorycal.value = response.data.map(item => ({
+            ...item,
+            username: item.username || 'Usuário não identificado',
+          }));
+          console.log("Histórico de Termos de uso vinculados ao user:", userHistorycal.value);
         } else {
-          console.warn("Nenhuma Termo de uso encontrado.");
+          console.warn("Nenhum histórico do Termo de uso encontrado.");
         }
       } catch (error) {
-        console.error("Erro ao buscar Termo:", error);
+        console.error("Erro ao buscar histórico:", error);
       }
     };
 
     const exportTermoAtualToPDF = () => {
-      const element = document.querySelector('#cardTermoAtual'); // Seleciona a parte que será exportada
+      const element = document.querySelector('#cardTermoHistorico'); // Seleciona a parte que será exportada
       const options = {
         margin: 1,
         filename: 'termo_atual.pdf',
@@ -309,7 +268,7 @@ export default {
 
     onMounted(() => {
       fetchPolicies();
-      buscaTermoDoUser();
+      buscaTermoHistoricoDoUser();
     });
 
     return {
@@ -323,7 +282,7 @@ export default {
       fetchPolicies,
       savePolicies,
       navigateTo,
-      userTerm,
+      userHistorycal,
       exportTermoAtualToPDF
 
     };
