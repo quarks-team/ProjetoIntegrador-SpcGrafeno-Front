@@ -59,8 +59,13 @@
           </v-card-title>
           <v-card-subtitle>Atualize seus consentimentos abaixo:</v-card-subtitle>
           <v-card-text>
-            <!-- Lista de itens do termo -->
-            <v-list>
+            <!-- Exibir mensagem enquanto os itens não são carregados -->
+            <template v-if="currentTermItems.length === 0">
+              <v-alert type="info">Nenhum item encontrado para o termo ativo.</v-alert>
+            </template>
+
+            <!-- Renderizar itens quando carregados -->
+            <v-list v-else>
               <v-list-item v-for="(item, index) in currentTermItems" :key="index">
                 <v-list-item-content>
                   <v-list-item-title>
@@ -76,22 +81,21 @@
                     <strong>Obrigatório:</strong> {{ item.isMandatory ? 'Sim' : 'Não' }}
                   </v-list-item-subtitle>
                 </v-list-item-content>
-                <!-- Checkbox com status baseado na obrigatoriedade -->
                 <v-list-item-action>
                   <v-checkbox v-model="selectedPolicies" :value="item.tag" :disabled="item.isMandatory"
                     :label="item.isMandatory ? 'Obrigatório' : 'Opcional'"></v-checkbox>
                 </v-list-item-action>
               </v-list-item>
             </v-list>
-
-            <!-- Botões de ação -->
-            <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn @click="savePolicies" color="primary">Atualizar Consentimento</v-btn>
-              <v-btn color="secondary" @click="redirectToTermsPage">Ver Termo Completo</v-btn>
-            </v-card-actions>
           </v-card-text>
+
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn @click="savePolicies" color="primary">Atualizar Consentimento</v-btn>
+            <v-btn color="secondary" @click="redirectToTermsPage">Ver Termo Completo</v-btn>
+          </v-card-actions>
         </v-card>
+
         <div style="position: relative;">
           <!-- Botão para salvar em PDF -->
           <v-btn @click="exportTermoAtualToPDF" color="primary">
@@ -171,15 +175,17 @@ export default {
     const username = ref(localStorage.getItem('username'));
     const userConsentHistory = ref([]);
     const router = useRouter();
+    const activeTerm = ref();
 
-    // Função para buscar os itens do termo atual
     const fetchCurrentTerm = async () => {
       try {
         const response = await grafenoAPI.get("/acceptance-terms");
         if (response.data && Array.isArray(response.data)) {
-          const activeTerm = response.data.find((term) => term.isActive);
-          if (activeTerm) {
-            currentTermItems.value = activeTerm.items;
+          const active = response.data.find((term) => term.isActive);
+          if (active) {
+            activeTerm.value = active; // Atualiza o termo ativo
+            currentTermItems.value = active.items; // Atualiza os itens do termo
+            await fetchConsentHistory(localStorage.getItem("userId")); // Carrega o histórico de consentimentos
           }
         }
       } catch (error) {
@@ -192,6 +198,11 @@ export default {
       try {
         const response = await grafenoAPI.get(`/user-consent/${userId}`);
         userConsentHistory.value = response.data;
+        // Pré-selecionar itens de consentimento com base no histórico de restrições
+        if (userConsentHistory.value.length > 0) {
+          const latestConsent = userConsentHistory.value[0];
+          selectedPolicies.value = latestConsent.terms.restrictions; // Restrições já selecionadas
+        }
       } catch (error) {
         console.error("Erro ao carregar o histórico de consentimento:", error);
       }
@@ -200,19 +211,41 @@ export default {
     // Função para salvar as atualizações dos consentimentos
     const savePolicies = async () => {
       try {
+        // Garantir que o termo ativo esteja carregado
+        if (!activeTerm.value || !activeTerm.value._id) {
+          throw new Error("Nenhum termo ativo encontrado.");
+        }
+
         const userId = localStorage.getItem("userId");
         if (!userId) {
           throw new Error("ID do usuário não encontrado no localStorage.");
         }
 
+        // Calcular as restrições com base nos itens não selecionados
+        const restrictions = currentTermItems.value
+          .filter((item) => !selectedPolicies.value.includes(item.tag))
+          .map((item) => item.tag);
+
+        // Construir o payload
         const payload = {
-          userId,
-          restrictions: selectedPolicies.value,
+          _id: userId, // ID do usuário
+          acceptanceTerms: [
+            {
+              _id: activeTerm.value._id, // ID do termo ativo
+              version: activeTerm.value.version,
+              isActive: true,
+              description: activeTerm.value.description,
+              items: currentTermItems.value, // Todos os itens do termo
+              restrictions, // Restrições calculadas
+            },
+          ],
         };
 
+        // Enviar o payload para o endpoint
         const updateResponse = await grafenoAPI.patch(`/user/acceptance-terms`, payload);
 
         if (updateResponse.status === 200) {
+          fetchConsentHistory(userId);
           alert("Consentimento atualizado com sucesso!");
         } else {
           throw new Error("Erro ao atualizar o consentimento.");
