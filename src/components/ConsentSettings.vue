@@ -59,18 +59,35 @@
           </v-card-title>
           <v-card-subtitle>Atualize seus consentimentos abaixo:</v-card-subtitle>
           <v-card-text>
-            <!-- Checkbox para os itens do termo -->
-            <v-checkbox-group v-model="selectedPolicies" :value="selectedPolicies">
-              <v-checkbox v-for="(item, index) in currentTermItems" :key="index" :label="item.description"
-                :value="item.tag" :disabled="item.isMandatory" :readonly="item.isMandatory"
-                :checked="item.tag"></v-checkbox>
-            </v-checkbox-group>
+            <!-- Lista de itens do termo -->
+            <v-list>
+              <v-list-item v-for="(item, index) in currentTermItems" :key="index">
+                <v-list-item-content>
+                  <v-list-item-title>
+                    <strong>Item:</strong> {{ item.name }}
+                  </v-list-item-title>
+                  <v-list-item-subtitle>
+                    <strong>Descrição:</strong> {{ item.description }}
+                  </v-list-item-subtitle>
+                  <v-list-item-subtitle>
+                    <strong>Tag:</strong> {{ item.tag }}
+                  </v-list-item-subtitle>
+                  <v-list-item-subtitle>
+                    <strong>Obrigatório:</strong> {{ item.isMandatory ? 'Sim' : 'Não' }}
+                  </v-list-item-subtitle>
+                </v-list-item-content>
+                <!-- Checkbox com status baseado na obrigatoriedade -->
+                <v-list-item-action>
+                  <v-checkbox v-model="selectedPolicies" :value="item.tag" :disabled="item.isMandatory"
+                    :label="item.isMandatory ? 'Obrigatório' : 'Opcional'"></v-checkbox>
+                </v-list-item-action>
+              </v-list-item>
+            </v-list>
 
-            <!-- Botão para salvar as alterações -->
+            <!-- Botões de ação -->
             <v-card-actions>
               <v-spacer></v-spacer>
               <v-btn @click="savePolicies" color="primary">Atualizar Consentimento</v-btn>
-              <!-- Botão para redirecionar para os termos completos -->
               <v-btn color="secondary" @click="redirectToTermsPage">Ver Termo Completo</v-btn>
             </v-card-actions>
           </v-card-text>
