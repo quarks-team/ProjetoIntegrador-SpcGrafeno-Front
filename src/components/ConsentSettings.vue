@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <!-- Menu Lateral -->
+    <!-- Navbar -->
     <v-navigation-drawer app v-model="drawer" permanent class="drawer-background">
       <v-list>
         <v-list-item>
@@ -8,9 +8,8 @@
             <v-icon>mdi-home</v-icon>
           </v-btn>
           <v-spacer></v-spacer>
-
           <v-list-item-content>
-            <v-list-item-title>Bem vindo {{ username || 'Usuário' }}</v-list-item-title>
+            <v-list-item-title>Bem-vindo {{ username }}</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
         <v-divider></v-divider>
@@ -50,117 +49,110 @@
       </v-list>
     </v-navigation-drawer>
 
-    <!-- Barra de Navegação -->
-    <v-app-bar app color="green lighten-3" flat>
-      <v-container class="d-flex justify-center align-center">
-        <div class="spc-score">
-          <v-toolbar-side-icon>
-            <v-icon class="icon" large>mdi-account-check</v-icon>
-          </v-toolbar-side-icon>
-          <v-toolbar-title>Gerenciamento de Consentimento</v-toolbar-title>
-        </div>
-      </v-container>
-      <v-spacer></v-spacer>
-    </v-app-bar>
-
-    <!-- Conteúdo Principal -->
+    <!-- Main Content -->
     <v-main>
-      <v-container fluid>
+      <v-container>
+        <!-- Termos de Aceite -->
         <v-card>
-          <v-card-title>Gerenciar Permissões e Restrições</v-card-title>
-          <v-card-subtitle>Revise e gerencie as permissões para o uso dos seus dados.</v-card-subtitle>
+          <v-card-title>
+            <span class="headline">Configurações de Consentimento</span>
+          </v-card-title>
+          <v-card-subtitle>Atualize seus consentimentos abaixo:</v-card-subtitle>
           <v-card-text>
-            <v-form v-model="valid">
-              <v-list dense>
-                <v-subheader>Termos e Condições</v-subheader>
-                <v-list-item v-for="policy in policies" :key="policy.id">
-                  <v-list-item-content>
-                    <v-list-item-title>Política {{ policy.id }}</v-list-item-title>
-                    <v-list-item-subtitle>{{ policy.description }}</v-list-item-subtitle>
-                  </v-list-item-content>
-                  <v-list-item-action>
-                    <v-checkbox v-if="!policy.isMandatory" v-model="policy.isActive"
-                      :label="policy.isActive ? 'Aceito' : 'Revogado'"></v-checkbox>
-                    <v-chip v-if="policy.isMandatory" label color="red" class="ml-2">
-                      Obrigatório
-                    </v-chip>
-                  </v-list-item-action>
-                </v-list-item>
-              </v-list>
-            </v-form>
-          </v-card-text>
-          <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn color="primary" @click="savePolicies">Salvar Alterações</v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-container>
+            <!-- Lista de itens do termo -->
+            <v-list>
+              <v-list-item v-for="(item, index) in currentTermItems" :key="index">
+                <v-list-item-content>
+                  <v-list-item-title>
+                    <strong>Item:</strong> {{ item.name }}
+                  </v-list-item-title>
+                  <v-list-item-subtitle>
+                    <strong>Descrição:</strong> {{ item.description }}
+                  </v-list-item-subtitle>
+                  <v-list-item-subtitle>
+                    <strong>Tag:</strong> {{ item.tag }}
+                  </v-list-item-subtitle>
+                  <v-list-item-subtitle>
+                    <strong>Obrigatório:</strong> {{ item.isMandatory ? 'Sim' : 'Não' }}
+                  </v-list-item-subtitle>
+                </v-list-item-content>
+                <!-- Checkbox com status baseado na obrigatoriedade -->
+                <v-list-item-action>
+                  <v-checkbox v-model="selectedPolicies" :value="item.tag" :disabled="item.isMandatory"
+                    :label="item.isMandatory ? 'Obrigatório' : 'Opcional'"></v-checkbox>
+                </v-list-item-action>
+              </v-list-item>
+            </v-list>
 
-      <v-container fluid>
-        <div class="text-right mt-4">
-          <v-btn color="primary" @click="exportTermoAtualToPDF">Exportar histórico para PDF</v-btn>
-        </div>
-        <v-card id="cardTermoHistorico">
-          <v-card-title class="text-h5">Histórico de Consentimento</v-card-title>
-          <v-card-text>
-            <div v-if="userHistorycal && userHistorycal.length > 0">
+            <!-- Botões de ação -->
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn @click="savePolicies" color="primary">Atualizar Consentimento</v-btn>
+              <v-btn color="secondary" @click="redirectToTermsPage">Ver Termo Completo</v-btn>
+            </v-card-actions>
+          </v-card-text>
+        </v-card>
+        <div style="position: relative;">
+          <!-- Botão para salvar em PDF -->
+          <v-btn @click="exportTermoAtualToPDF" color="primary">
+            Salvar Histórico em PDF
+          </v-btn>
+
+          <!-- Card do Histórico -->
+          <v-card class="mt-5" id="cardTermoHistorico">
+            <v-card-title>
+              <span class="headline">Histórico de Consentimentos</span>
+            </v-card-title>
+            <v-card-subtitle>Veja seu histórico completo de aceites:</v-card-subtitle>
+            <v-card-text>
+              <!-- Lista de históricos de consentimento -->
               <v-list>
-                <!-- Ordena o histórico pelo campo de data (decrescente) -->
-                <v-list-item
-                  v-for="(consent, index) in [...userHistorycal].sort((a, b) => new Date(b.terms[0].createdAt) - new Date(a.terms[0].createdAt))"
-                  :key="consent._id" class="mb-4">
-                  <v-card flat outlined>
-                    <v-card-title class="text-h6">
-                      {{ index + 1 }} - {{ username }} aceitou o termo
-                    </v-card-title>
-                    <v-card-subtitle>
-                      <strong>Descrição:</strong> {{ consent.terms[0].description }}
-                    </v-card-subtitle>
-                    <v-card-subtitle>
-                      <strong>Versão:</strong> {{ consent.terms[0].version }}
-                    </v-card-subtitle>
-                    <v-card-subtitle>
-                      <strong>Data de Aceitação:</strong> {{ new Date(consent.terms[0].createdAt).toLocaleString() }}
-                    </v-card-subtitle>
-                    <v-card-subtitle>
-                      <strong>Ativo:</strong> {{ consent.isActive ? 'Sim' : 'Não' }}
-                    </v-card-subtitle>
-                    <v-divider></v-divider>
-
-                    <v-card-text>
-                      <p><strong>Itens do Termo:</strong></p>
+                <v-list-item-group v-if="userConsentHistory.length > 0">
+                  <v-list-item v-for="(consent, index) in userConsentHistory" :key="consent._id">
+                    <v-list-item-content>
+                      <v-list-item-title>
+                        {{ consent.terms.description }} (Versão {{ consent.terms.version }})
+                      </v-list-item-title>
+                      <v-list-item-subtitle>
+                        Aceite em: {{ new Date(consent.updatedAt).toLocaleString() }}
+                      </v-list-item-subtitle>
+                      <v-list-item-subtitle>
+                        Status: {{ consent.isActive ? "Ativo" : "Inativo" }}
+                      </v-list-item-subtitle>
+                      <!-- Exibição dos itens do termo -->
+                      <v-divider class="mt-2"></v-divider>
                       <v-list>
-                        <v-list-item-group>
-                          <v-list-item v-for="(item, itemIndex) in consent.terms[0].items" :key="itemIndex">
-                            <v-list-item-content>
-                              <v-list-item-title>
-                                Nome do item: {{ item.name }} 
-                                <br>
-                                Tag: {{ item.tag }}
-                                <span v-if="item.isMandatory"
-                                  style="color: red; font-weight: bold;">[Obrigatório]</span>
-                              </v-list-item-title>
-                              <v-list-item-subtitle>
-                                Descricao: {{ item.description }}
-                              </v-list-item-subtitle>
-                            </v-list-item-content>
-                          </v-list-item>
-                        </v-list-item-group>
+                        <v-list-item v-for="(item, itemIndex) in consent.terms.items" :key="itemIndex">
+                          <v-list-item-content>
+                            <v-list-item-title>Item: {{ item.name }}</v-list-item-title>
+                            <v-list-item-subtitle>Descrição: {{ item.description }}</v-list-item-subtitle>
+                            <v-list-item-subtitle>Tag: {{ item.tag }}</v-list-item-subtitle>
+                            <v-list-item-subtitle>
+                              Obrigatório: {{ item.isMandatory ? "Sim" : "Não" }}
+                            </v-list-item-subtitle>
+                          </v-list-item-content>
+                        </v-list-item>
                       </v-list>
-                    </v-card-text>
-                  </v-card>
-                </v-list-item>
+                      <v-list-item-subtitle>
+                        <strong>Restrições:</strong>
+                        <span v-if="consent.terms.restrictions.length > 0">
+                          {{ consent.terms.restrictions.join(", ") }}
+                        </span>
+                        <span v-else>
+                          Não há restrições
+                        </span>
+                      </v-list-item-subtitle>
+                    </v-list-item-content>
+                  </v-list-item>
+                </v-list-item-group>
+                <v-alert v-else type="info">
+                  Nenhum histórico de consentimento encontrado.
+                </v-alert>
               </v-list>
-            </div>
-            <div v-else>
-              <v-card>
-                <p>Não há histórico de consentimento para este usuário.</p>
-              </v-card>
-            </div>
-          </v-card-text>
-        </v-card>
+            </v-card-text>
+          </v-card>
+        </div>
       </v-container>
-
     </v-main>
   </v-app>
 </template>
@@ -173,85 +165,70 @@ import html2pdf from "html2pdf.js";
 
 export default {
   setup() {
-    const router = useRouter();
     const drawer = ref(true);
-    const username = ref(localStorage.getItem("username"));
-    const userId = ref(localStorage.getItem("userId"));
-    const token = ref(localStorage.getItem("authToken"));
-    const policies = ref([]);
-    const valid = ref(false);
-    const activeTab = ref(0);
-    const userHistorycal = ref();
+    const currentTermItems = ref([]);
+    const selectedPolicies = ref([]);
+    const username = ref(localStorage.getItem('username'));
+    const userConsentHistory = ref([]);
+    const router = useRouter();
 
-    // Função de logout
-    const logout = () => {
-      localStorage.removeItem("id");
-      localStorage.removeItem("username");
-      router.push("/login");
+    // Função para buscar os itens do termo atual
+    const fetchCurrentTerm = async () => {
+      try {
+        const response = await grafenoAPI.get("/acceptance-terms");
+        if (response.data && Array.isArray(response.data)) {
+          const activeTerm = response.data.find((term) => term.isActive);
+          if (activeTerm) {
+            currentTermItems.value = activeTerm.items;
+          }
+        }
+      } catch (error) {
+        console.error("Erro ao buscar os termos de aceitação:", error);
+      }
     };
 
-    // Navegação entre rotas
+    // Função para buscar o histórico de consentimentos
+    const fetchConsentHistory = async (userId) => {
+      try {
+        const response = await grafenoAPI.get(`/user-consent/${userId}`);
+        userConsentHistory.value = response.data;
+      } catch (error) {
+        console.error("Erro ao carregar o histórico de consentimento:", error);
+      }
+    };
+
+    // Função para salvar as atualizações dos consentimentos
+    const savePolicies = async () => {
+      try {
+        const userId = localStorage.getItem("userId");
+        if (!userId) {
+          throw new Error("ID do usuário não encontrado no localStorage.");
+        }
+
+        const payload = {
+          userId,
+          restrictions: selectedPolicies.value,
+        };
+
+        const updateResponse = await grafenoAPI.patch(`/user/acceptance-terms`, payload);
+
+        if (updateResponse.status === 200) {
+          alert("Consentimento atualizado com sucesso!");
+        } else {
+          throw new Error("Erro ao atualizar o consentimento.");
+        }
+      } catch (error) {
+        console.error("Erro ao salvar o consentimento:", error);
+      }
+    };
+
     const navigateTo = (page) => {
       router.push(`/${page}`);
     };
-
-    // Busca historico de consentimento
-    const fetchPolicies = async () => {
-      try {
-        const response = await grafenoAPI.get(`/acceptance-terms`);
-        if (response.data && Array.isArray(response.data)) {
-          policies.value = response.data.map((policy) => ({
-            id: policy.policyId,
-            description: `Descrição para política ${policy.policyId}`,
-            isActive: policy.isActive,
-            isMandatory: policy.isMandatory,
-            acceptanceDate: policy.acceptanceDate,
-          }));
-          console.log("Políticas de consentimento buscadas:", policies.value);
-        } else {
-          console.warn("Nenhuma política de consentimento encontrada.");
-        }
-      } catch (error) {
-        console.error("Erro ao buscar políticas:", error);
-      }
-    };
-
-    // Salva as políticas atualizadas
-    const savePolicies = async () => {
-      const consentData = {
-        userId: userId.value,
-        consents: policies.value.map((policy) => ({
-          id: policy.id,
-          status: policy.isActive,
-          isMandatory: policy.isMandatory,
-        })),
-      };
-
-      try {
-        await grafenoAPI.post("/user-consent/update", consentData);
-        alert("Permissões atualizadas com sucesso.");
-      } catch (error) {
-        console.error("Erro ao salvar permissões:", error);
-        alert("Erro ao atualizar permissões.");
-      }
-    };
-
-    const buscaTermoHistoricoDoUser = async () => {
-      try {
-        const response = await grafenoAPI.get(`/user-consent/${userId.value}`);
-
-        if (response.data !== null) {
-          userHistorycal.value = response.data.map(item => ({
-            ...item,
-            username: item.username || 'Usuário não identificado',
-          }));
-          console.log("Histórico de Termos de uso vinculados ao user:", userHistorycal.value);
-        } else {
-          console.warn("Nenhum histórico do Termo de uso encontrado.");
-        }
-      } catch (error) {
-        console.error("Erro ao buscar histórico:", error);
-      }
+    const logout = () => {
+      localStorage.removeItem('endorserName');
+      localStorage.removeItem('username');
+      router.push('/login');
     };
 
     const exportTermoAtualToPDF = () => {
@@ -266,29 +243,36 @@ export default {
       html2pdf().from(element).set(options).save(); // Gera e baixa o PDF
     };
 
+    const redirectToTermsPage = function () {
+      // Redireciona o usuário para a página dos termos completos
+      window.open('https://github.com/quarks-team/Projeto-Integrador-SPCGrafeno/wiki/User-Acceptance-terms', '_blank');
+    }
+
+    // Carregar os dados quando a página for montada
     onMounted(() => {
-      fetchPolicies();
-      buscaTermoHistoricoDoUser();
+      fetchCurrentTerm();
+      const userId = localStorage.getItem("userId"); // Supondo que o userId esteja no localStorage
+      if (userId) {
+        fetchConsentHistory(userId); // Carregar o histórico de consentimento
+      }
     });
 
     return {
       drawer,
       username,
-      logout,
-      valid,
-      userId,
-      policies,
-      activeTab,
-      fetchPolicies,
+      currentTermItems,
+      selectedPolicies,
       savePolicies,
       navigateTo,
-      userHistorycal,
+      userConsentHistory,
+      logout,
+      redirectToTermsPage,
       exportTermoAtualToPDF
-
     };
   },
 };
 </script>
+
 
 <style scoped>
 .v-chip {
