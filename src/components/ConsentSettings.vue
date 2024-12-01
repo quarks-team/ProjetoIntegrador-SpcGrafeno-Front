@@ -49,16 +49,25 @@
       </v-list>
     </v-navigation-drawer>
 
-    <!-- Main Content -->
+    <v-app-bar app color="green lighten-3" flat>
+      <v-container class="d-flex justify-center align-center">
+      <div class="spc-score">
+      <v-toolbar-side-icon>
+        <v-icon class="icon" large>mdi-tune</v-icon>
+      </v-toolbar-side-icon>
+      <v-toolbar-title> Configurações </v-toolbar-title>
+    </div>
+  </v-container>
+      <v-spacer></v-spacer>
+    </v-app-bar>
+
     <v-main>
-      <v-container>
-        <!-- Termos de Aceite -->
-        <v-card>
-          <v-card-title>
-            <span class="headline">Configurações de Consentimento</span>
-          </v-card-title>
-          <v-card-subtitle>Atualize seus consentimentos abaixo:</v-card-subtitle>
-          <v-card-text>
+      <v-container fluid class="background-image">
+        <v-row justify="center" align="center" class="min-height">
+          <v-col cols="12" md="6" class="text-center">
+            <v-card class="mx-auto" flat>
+            <v-card-title>Configurações de Consentimento</v-card-title>
+            <v-card-text>
             <!-- Exibir mensagem enquanto os itens não são carregados -->
             <template v-if="currentTermItems.length === 0">
               <v-alert type="info">Nenhum item encontrado para o termo ativo.</v-alert>
@@ -156,6 +165,8 @@
             </v-card-text>
           </v-card>
         </div>
+        </v-col>
+      </v-row>
       </v-container>
     </v-main>
   </v-app>
